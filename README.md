@@ -1,172 +1,172 @@
 # jc-nodejs-training
+[![CI](https://github.com/Raven-Training/jc-nodejs-training/actions/workflows/ci.yml/badge.svg)](https://github.com/Raven-Training/jc-nodejs-training/actions/workflows/ci.yml)
+
+Node.js training platform with TypeScript using Express, TypeORM, and PostgreSQL. This project serves as a base to build REST APIs with best practices for structure, configuration, and code quality.
+
+---
+
+## Features
+- **Express 5** for HTTP layer and middlewares.
+- **TypeScript** with strict configuration and decorator support.
+- **TypeORM** for data access and entities with PostgreSQL.
+- **Environment variable management** with `dotenv` and `.env.example` file.
+- **Style and quality** with ESLint + Prettier.
+- **Ready-to-use tests** with Jest and Supertest.
+
+---
+
+## Requirements
+- Node.js `22.18.0`
+- npm `10.9.3`
+- PostgreSQL (local or remote)
+
+Check your Node/npm version:
+```bash
+node -v
+npm -v
+```
+
+---
+
+## Environment variable setup
+This project uses environment variables for configuration. Do not share secrets in the repository.
+
+1) Copy the example file and fill it in:
+```bash
+cp .env.example .env
+```
+2) Edit `.env` with your local values. Available variables:
+- `NODE_ENV` (default: `development`)
+- `PORT` API HTTP port (default: `3000`)
+- `DB_HOST` Database host (default: `localhost`)
+- `DB_PORT` Database port (default: `5432`)
+- `DB_USERNAME` Database user
+- `DB_PASSWORD` Database password
+- `DB_NAME` Database name
+- `TODOS_API_BASE_URL` Base URL for external Todos API (default: `https://jsonplaceholder.typicode.com`)
+
+Variables are consumed from `src/config/config.ts` using `process.env`.
+
+---
+
+## Installation
+Install dependencies:
+```bash
+npm install
+```
+
+---
+
+## Available scripts
+Scripts are defined in `package.json`.
+
+- `npm run dev`: Starts the server in development mode with hot reload (ts-node-dev).
+- `npm run build`: Compiles TypeScript to JavaScript in `dist/`.
+- `npm start`: Compiles and runs the server from `dist/`.
+- `npm test`: Runs tests with Jest.
+- `npm run test:watch`: Runs tests in watch mode.
+- `npm run test:cov`: Generates coverage report.
+- `npm run lint`: Linter (ESLint) for `.ts` files.
+- `npm run lint:fix`: Linter with autofix.
+
+---
+
+## Quick start
+1) Clone the repository and enter the project directory
+2) Create `.env` from `.env.example`
+3) Install dependencies: `npm install`
+4) Make sure PostgreSQL is available and credentials are correct
+5) Development mode:
+```bash
+npm run dev
+```
+The server runs at `http://localhost:3000` (or the port defined in `PORT`).
+
+Production/local build:
+```bash
+npm start
+```
+
+---
+
+## Endpoints
+Routes are defined in `src/routes.ts` and controllers in `src/controllers/`.
+
+- `GET /health` Health check
+- `GET /users` List users
+- `POST /users` Create user (JSON body)
+- `GET /users/:id` Get user by id
+- `GET /todos` Todos list (proxy to `TODOS_API_BASE_URL`)
+
+Examples:
+```bash
+curl http://localhost:3000/health
+
+curl http://localhost:3000/users
+
+curl -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com"}'
+
+curl http://localhost:3000/users/1
+
+curl http://localhost:3000/todos
+```
+
+Static documentation (if applicable): `GET /docs` serves files from `src/docs/` in build.
+
+---
+
+## Project structure
+```
+src/
+├─ app.ts                # Express configuration and middlewares
+├─ server.ts             # Server bootstrap and DB connection
+├─ routes.ts             # Route definitions
+├─ config/
+│  ├─ config.ts          # Environment variable loading
+│  └─ config.types.ts    # Configuration types
+├─ controllers/          # HTTP controllers
+├─ entities/             # TypeORM entities
+├─ middlewares/          # Middlewares (error handling, etc.)
+├─ data-source.ts        # TypeORM DataSource configuration
+├─ migrations/           # Migrations (if used)
+└─ services/             # Business logic
+```
+
+---
+
+## Database
+- ORM: TypeORM (`src/data-source.ts`)
+- Default `synchronize: true` (development only). For production, disable `synchronize` and use migrations.
+
+---
+
+## Code quality
+- ESLint and Prettier configured. Check with:
+```bash
+npm run lint
+npm run lint:fix
+```
+- `lint-staged` is configured to format/lint staged files.
+
+---
+
+## Main technologies
+- Node.js, TypeScript, Express 5
+- TypeORM, PostgreSQL
+- Axios, CORS, http-status
+- Jest, Supertest
+
+---
+
+## Contribution
+1) Create a feature branch
+2) Make sure to pass linters and tests
+3) Open a Pull Request with a clear description
+
+---
+
+## License
+ISC
  
- English version: [README.en.md](./README.en.md)
- 
- Plataforma de entrenamiento en Node.js con TypeScript utilizando Express, TypeORM y PostgreSQL. Este proyecto sirve como base para construir APIs REST con buenas prácticas de estructura, configuración y calidad de código.
-
- ---
-
- ## Características
- - **Express 5** para la capa HTTP y middlewares.
- - **TypeScript** con configuración estricta y soporte de decoradores.
- - **TypeORM** para acceso a datos y entidades con PostgreSQL.
- - **Gestión de variables** con `dotenv` y archivo `.env.example`.
- - **Estilo y calidad** con ESLint + Prettier.
- - **Tests** listos con Jest y Supertest.
-
- ---
-
- ## Requisitos
- - Node.js `22.18.0`
- - npm `10.9.3`
- - PostgreSQL (local o remoto)
-
- Verifica tu versión de Node/npm:
- ```bash
- node -v
- npm -v
- ```
-
- ---
-
- ## Configuración de variables de entorno
- Este proyecto utiliza variables de entorno para configuración. No compartas secretos en el repositorio.
-
- 1) Copia el archivo de ejemplo y complétalo:
- ```bash
- cp .env.example .env
- ```
- 2) Edita `.env` con tus valores locales. Variables disponibles:
- - `NODE_ENV` (por defecto: `development`)
- - `PORT` Puerto HTTP de la API (por defecto: `3000`)
- - `DB_HOST` Host de la base de datos (por defecto: `localhost`)
- - `DB_PORT` Puerto de la base de datos (por defecto: `5432`)
- - `DB_USERNAME` Usuario de la base de datos
- - `DB_PASSWORD` Contraseña de la base de datos
- - `DB_NAME` Nombre de la base de datos
- - `TODOS_API_BASE_URL` Base URL para API externa de Todos (por defecto: `https://jsonplaceholder.typicode.com`)
-
- Las variables se consumen desde `src/config/config.ts` mediante `process.env`.
-
- ---
-
- ## Instalación
- Instala dependencias:
- ```bash
- npm install
- ```
-
- ---
-
- ## Scripts disponibles
- Los scripts están definidos en `package.json`.
-
- - `npm run dev`: Arranca el servidor en desarrollo con recarga (ts-node-dev).
- - `npm run build`: Compila TypeScript a JavaScript en `dist/`.
- - `npm start`: Compila y levanta el servidor desde `dist/`.
- - `npm test`: Ejecuta los tests con Jest.
- - `npm run test:watch`: Ejecuta tests en modo watch.
- - `npm run test:cov`: Genera reporte de cobertura.
- - `npm run lint`: Linter (ESLint) sobre archivos `.ts`.
- - `npm run lint:fix`: Linter con autofix.
-
- ---
-
- ## Inicio rápido
- 1) Clonar repositorio y entrar al directorio del proyecto
- 2) Crear `.env` a partir de `.env.example`
- 3) Instalar dependencias: `npm install`
- 4) Asegurar que PostgreSQL esté disponible y credenciales correctas
- 5) Modo desarrollo:
- ```bash
- npm run dev
- ```
- El servidor corre en `http://localhost:3000` (o el puerto definido en `PORT`).
-
- Producción/local build:
- ```bash
- npm start
- ```
-
- ---
-
- ## Endpoints
- Rutas definidas en `src/routes.ts` y controladores en `src/controllers/`.
-
- - `GET /health` Health check
- - `GET /users` Lista usuarios
- - `POST /users` Crea usuario (JSON body)
- - `GET /users/:id` Obtiene usuario por id
- - `GET /todos` Lista de todos (proxy a `TODOS_API_BASE_URL`)
-
- Ejemplos:
- ```bash
- curl http://localhost:3000/health
-
- curl http://localhost:3000/users
-
- curl -X POST http://localhost:3000/users \
-   -H "Content-Type: application/json" \
-   -d '{"name":"John Doe","email":"john@example.com"}'
-
- curl http://localhost:3000/users/1
-
- curl http://localhost:3000/todos
- ```
-
- Documentación estática (si aplica): `GET /docs` sirve archivos desde `src/docs/` en build.
-
- ---
-
- ## Estructura del proyecto
- ```
- src/
- ├─ app.ts                # Configuración de Express y middlewares
- ├─ server.ts             # Bootstrap del servidor y conexión DB
- ├─ routes.ts             # Definición de rutas
- ├─ config/
- │  ├─ config.ts          # Carga de variables de entorno
- │  └─ config.types.ts    # Tipos de configuración
- ├─ controllers/          # Controladores HTTP
- ├─ entities/             # Entidades TypeORM
- ├─ middlewares/          # Middlewares (error handling, etc.)
- ├─ data-source.ts        # Configuración de TypeORM DataSource
- ├─ migrations/           # Migraciones (si se usan)
- └─ services/             # Lógica de negocio
- ```
-
- ---
-
- ## Base de datos
- - ORM: TypeORM (`src/data-source.ts`)
- - Por defecto `synchronize: true` (solo para desarrollo). Para producción, desactiva `synchronize` y usa migraciones.
-
- ---
-
- ## Calidad de código
- - ESLint y Prettier configurados. Revisa con:
- ```bash
- npm run lint
- npm run lint:fix
- ```
- - `lint-staged` está configurado para formatear/lint en staged files.
-
- ---
-
- ## Tecnologías principales
- - Node.js, TypeScript, Express 5
- - TypeORM, PostgreSQL
- - Axios, CORS, http-status
- - Jest, Supertest
-
- ---
-
- ## Contribución
- 1) Crea una rama de feature
- 2) Asegúrate de pasar linters y tests
- 3) Abre un Pull Request con descripción clara
-
- ---
-
- ## Licencia
- ISC

@@ -15,7 +15,10 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "npm run build && node dist/src/server.js"
+    "start": "npm run build && node dist/src/server.js",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate ./src/migrations/AutoMigration -d ./src/data-source.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d ./src/data-source.ts"
   },
   "repository": {
     "type": "git",

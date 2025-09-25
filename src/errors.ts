@@ -2,6 +2,15 @@ import status from 'http-status';
 
 import { createInternalError } from './middlewares/error.middleware';
 
+export class ApiError extends Error {
+  public readonly statusCode: number;
+
+  constructor(statusCode: number, message: string) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
 export const AUTHENTICATION_ERROR = 'authentication_error';
 export const authenticationError = createInternalError(AUTHENTICATION_ERROR, status.UNAUTHORIZED);
 

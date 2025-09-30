@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { getPokemons } from '../services/Cards';
+import { getPokemons } from '../services/cards';
 import { PokemonList } from '../types/cards.types';
 
 export function getAllPokemons(

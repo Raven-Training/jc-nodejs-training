@@ -1,11 +1,4 @@
-import axios from 'axios';
-
-import config from '../config/config';
-
-const client = axios.create({
-  baseURL: config.todosApi.baseURL,
-  responseType: 'json',
-});
+import { todosAxiosInstance, handleApiError } from '../helpers/axios.helper';
 
 export interface Todo {
   userId: number;
@@ -15,6 +8,10 @@ export interface Todo {
 }
 
 export async function getAllTodos(): Promise<Todo[]> {
-  const response = await client.get<Todo[]>('todos');
-  return response.data;
+  try {
+    const response = await todosAxiosInstance.get<Todo[]>('todos');
+    return response.data;
+  } catch (error) {
+    return handleApiError(error, 'todos');
+  }
 }

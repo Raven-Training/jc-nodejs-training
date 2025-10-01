@@ -1,4 +1,6 @@
-import { todosAxiosInstance, handleApiError } from '../helpers/axios.helper';
+import config from '../config/config';
+import { createAxiosInstance } from '../helpers/axios.helper';
+import { createInternalError } from '../middlewares/error.middleware';
 
 export interface Todo {
   userId: number;
@@ -9,9 +11,13 @@ export interface Todo {
 
 export async function getAllTodos(): Promise<Todo[]> {
   try {
-    const response = await todosAxiosInstance.get<Todo[]>('todos');
-    return response.data;
+    const { data } = await createAxiosInstance(config.todosApi.baseURL).get<Todo[]>('todos');
+    return data;
   } catch (error) {
-    return handleApiError(error, 'todos');
+    console.error(`Todos API - Error fetching data for 'todos':`, error);
+    throw createInternalError('TODOS_API_ERROR', 500)(
+      'Failed to fetch data from Todos API',
+      error instanceof Error ? error : undefined,
+    );
   }
 }

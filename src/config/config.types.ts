@@ -15,7 +15,7 @@ export interface ApiConfig {
   port: number;
 }
 
-export interface TodosApiConfig {
+export interface ApiBaseConfig {
   baseURL: ENV_VAR;
 }
 
@@ -25,5 +25,6 @@ export interface Config {
   common: {
     db: DatabaseConfig;
   };
-  todosApi: TodosApiConfig;
+  todosApi: ApiBaseConfig;
+  pokeApi: ApiBaseConfig;
 }

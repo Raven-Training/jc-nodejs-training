@@ -22,6 +22,9 @@ const config: Config = {
   todosApi: {
     baseURL: process.env.TODOS_API_BASE_URL || 'https://jsonplaceholder.typicode.com',
   },
+  pokeApi: {
+    baseURL: process.env.POKEAPI_BASE_URL || 'https://pokeapi.co/api/v2/',
+  },
 };
 
 export default config;

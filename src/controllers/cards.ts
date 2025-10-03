@@ -1,14 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { getPokemons } from '../services/cards';
-import { PokemonList } from '../types/cards.types';
+import { Pokemon } from '../types/cards.types';
 
-export function getAllPokemons(
+export async function getAllPokemons(
   _req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
-  return getPokemons()
-    .then((pokemons: PokemonList) => res.status(200).json(pokemons))
-    .catch((err: Error) => next(err));
+  try {
+    const pokemons: Pokemon[] = await getPokemons();
+    console.info('Controller - successfully retrieved and sending Pokemons');
+    return res.status(200).json(pokemons);
+  } catch (error) {
+    console.error('Controller Error - Failed to process request for Pokemons:', error);
+    next(error instanceof Error ? error : new Error('Unknown error occurred in getAllPokemons'));
+  }
 }

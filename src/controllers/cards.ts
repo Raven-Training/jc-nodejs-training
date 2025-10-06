@@ -10,10 +10,16 @@ export async function getAllPokemons(
 ): Promise<Response | void> {
   try {
     const pokemons: Pokemon[] = await getPokemons();
+
+    if (!pokemons || pokemons.length === 0) {
+      console.warn('Controller - No Pokemons found from service');
+      return res.status(204).send();
+    }
+
     console.info('Controller - successfully retrieved and sending Pokemons');
     return res.status(200).json(pokemons);
-  } catch (error) {
-    console.error('Controller Error - Failed to process request for Pokemons:', error);
-    next(error instanceof Error ? error : new Error('Unknown error occurred in getAllPokemons'));
+  } catch (err) {
+    console.error('Controller Error - Failed to process request for Pokemons:', err);
+    next(err);
   }
 }

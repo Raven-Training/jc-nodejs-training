@@ -1,9 +1,9 @@
-import bcrypt from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
 import status from 'http-status';
 
 import { User } from '../entities/User';
 import { notFoundError } from '../errors';
+import { hashPassword } from '../helpers/password.helper';
 import * as userService from '../services/users';
 
 export function getUsers(
@@ -23,10 +23,13 @@ export async function createUser(
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await hashPassword(req.body.password);
     const user = await userService.registerUser({ ...req.body, password: hashedPassword });
+
     console.log(`User ${user.name} registered successfully.`);
-    return res.status(status.CREATED).json({ user });
+
+    const { password: _password, ...userWithoutPassword } = user;
+    return res.status(status.CREATED).json({ user: userWithoutPassword });
   } catch (err) {
     console.error('Error registering user:', err);
     next(err);

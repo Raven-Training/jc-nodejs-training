@@ -4,7 +4,7 @@ import { getAllPokemons } from './controllers/cards';
 import { healthCheck } from './controllers/healthCheck';
 import { getTodos } from './controllers/todos';
 import { getUsers, getUserById, createUser } from './controllers/users';
-import { validateRegistration } from './middlewares/validateUser.middleware';
+import { validateRegistration } from './middlewares/validation.middleware';
 
 export const init = (app: Application): void => {
   app.get('/health', healthCheck);

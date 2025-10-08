@@ -58,6 +58,71 @@ describe('Users Controller', () => {
     });
   });
 
+  it('POST /users fails if the email is already in use', async () => {
+    const newUser = {
+      name: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    };
+
+    jest.spyOn(userService, 'findUser').mockResolvedValue({
+      id: 1,
+      name: 'Existing',
+      lastName: 'User',
+      email: 'john@example.com',
+      password: 'hashedpassword',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as User);
+
+    const res = await request(app).post('/users').send(newUser);
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      message: 'Email already exists',
+      field: 'email',
+    });
+    expect(userService.findUser).toHaveBeenCalledWith({
+      where: { email: newUser.email },
+    });
+  });
+
+  it('POST /users fails if the password does not meet restrictions', async () => {
+    const invalidUser = {
+      name: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'short',
+    };
+
+    const res = await request(app).post('/users').send(invalidUser);
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          msg: 'Password must be at least 8 characters long',
+        }),
+      ]),
+    );
+  });
+
+  it('POST /users fails if required parameters are missing', async () => {
+    const invalidUser = { email: 'john@example.com' };
+
+    const res = await request(app).post('/users').send(invalidUser);
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: 'Name is required' }),
+        expect.objectContaining({ msg: 'Last name is required' }),
+        expect.objectContaining({ msg: 'Password must be at least 8 characters long' }),
+      ]),
+    );
+  });
+
   it('GET /users/:id returns a user if found', async () => {
     const foundUser = { id: 3, name: 'Carol', email: 'carol@example.com' } as User;
     (userService.findUser as jest.Mock).mockResolvedValue(foundUser);

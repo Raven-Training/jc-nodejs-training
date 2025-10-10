@@ -3,6 +3,7 @@ import status from 'http-status';
 
 import { User } from '../entities/User';
 import { notFoundError } from '../errors';
+import { hashPassword } from '../helpers/password.helper';
 import * as userService from '../services/users';
 
 export function getUsers(
@@ -16,15 +17,23 @@ export function getUsers(
     .catch(next);
 }
 
-export function createUser(
+export async function createUser(
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
-  return userService
-    .createAndSave(req.body as User)
-    .then((user: User) => res.status(status.CREATED).send({ user }))
-    .catch(next);
+  try {
+    const hashedPassword = await hashPassword(req.body.password);
+    const user = await userService.registerUser({ ...req.body, password: hashedPassword });
+
+    console.log(`User ${user.name} registered successfully.`);
+
+    const { password: _password, ...userWithoutPassword } = user;
+    return res.status(status.CREATED).json({ user: userWithoutPassword });
+  } catch (err) {
+    console.error('Error registering user:', err);
+    next(err);
+  }
 }
 
 export function getUserById(

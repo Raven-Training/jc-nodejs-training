@@ -19,3 +19,7 @@ export function findAll(options?: FindManyOptions): Promise<User[]> {
 export function createMany(users: DeepPartial<User>[]): Promise<User[]> {
   return userRepository.save(users);
 }
+
+export function registerUser(user: User): Promise<User> {
+  return userRepository.save(user);
+}

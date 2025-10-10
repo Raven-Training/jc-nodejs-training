@@ -19,14 +19,42 @@ describe('Users Controller', () => {
   });
 
   it('POST /users creates a user via the service', async () => {
-    const newUser = { name: 'Bob', email: 'bob@example.com' };
-    const createdUser = { id: 2, ...newUser } as User;
-    (userService.createAndSave as jest.Mock).mockResolvedValue(createdUser);
+    const newUser = {
+      name: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    };
+
+    const createdUser = {
+      id: 1,
+      name: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'hashedPassword123',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
 
     const res = await request(app).post('/users').send(newUser);
+
     expect(res.status).toBe(201);
-    expect(res.body).toEqual({ user: createdUser });
-    expect(userService.createAndSave).toHaveBeenCalledWith(newUser);
+    expect(res.body).toEqual({
+      user: {
+        id: createdUser.id,
+        name: createdUser.name,
+        lastName: createdUser.lastName,
+        email: createdUser.email,
+        createdAt: createdUser.createdAt.toISOString(),
+        updatedAt: createdUser.updatedAt.toISOString(),
+      },
+    });
+    expect(userService.registerUser).toHaveBeenCalledWith({
+      ...newUser,
+      password: expect.any(String),
+    });
   });
 
   it('GET /users/:id returns a user if found', async () => {

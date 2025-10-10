@@ -1,0 +1,141 @@
+openapi: 3.1.1
+info:
+  title: Kickoff Node.js API
+  description: RESTful API built with Node.js, Express, TypeScript, and TypeORM
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+tags:
+  - name: Users
+    description: User management operations
+  - name: Health
+    description: Health check operations
+
+paths:
+  /users:
+    post:
+      tags: [Users]
+      summary: Register a new user (Sign Up)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+            example:
+              name: 'John'
+              lastName: 'Doe'
+              email: 'john.doe@example.com'
+              password: 'securePassword123'
+      responses:
+        '201':
+          $ref: '#/components/responses/UserCreated'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    # Request/Response Models
+    UserRequest:
+      type: object
+      required: [name, lastName, email, password]
+      properties:
+        name: { type: string, minLength: 1, example: 'John' }
+        lastName: { type: string, minLength: 1, example: 'Doe' }
+        email: { type: string, format: email, example: 'john.doe@example.com' }
+        password: { type: string, minLength: 8, example: 'securePassword123' }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: 'John' }
+        lastName: { type: string, example: 'Doe' }
+        email: { type: string, format: email, example: 'john.doe@example.com' }
+        createdAt: { type: string, format: date-time, example: '2025-10-10T14:30:00.000Z' }
+        updatedAt: { type: string, format: date-time, example: '2025-10-10T14:30:00.000Z' }
+
+    UserResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string, example: 'OK' }
+        timestamp: { type: string, format: date-time }
+
+    # Error Models
+    ValidationErrorItem:
+      type: object
+      properties:
+        type: { type: string, example: 'field' }
+        value: { type: string, example: 'invalid-email' }
+        msg: { type: string, example: 'Invalid email format' }
+        path: { type: string, example: 'email' }
+        location: { type: string, example: 'body' }
+
+    ErrorResponse:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: array
+          items: { $ref: '#/components/schemas/ValidationErrorItem' }
+
+  responses:
+    UserCreated:
+      description: User successfully created
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/UserResponse' }
+          example:
+            user:
+              id: 1
+              name: 'John'
+              lastName: 'Doe'
+              email: 'john.doe@example.com'
+              createdAt: '2025-10-10T14:30:00.000Z'
+              updatedAt: '2025-10-10T14:30:00.000Z'
+
+    ValidationError:
+      description: Validation errors in request data
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example:
+            message: 'Validation failed'
+            errors:
+              - type: 'field'
+                value: 'invalid-email'
+                msg: 'Invalid email format'
+                path: 'email'
+                location: 'body'
+
+    ConflictError:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string, example: 'Email already exists' }
+              field: { type: string, example: 'email' }

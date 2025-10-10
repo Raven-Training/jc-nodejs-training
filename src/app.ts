@@ -1,19 +1,19 @@
-import path from 'node:path';
-
-import cors from 'cors';
 import express from 'express';
 
+import { setupMiddlewares } from './config/middleware.config';
 import { errorHandlerMiddleware } from './middlewares/error.middleware';
 import * as routes from './routes';
 
-const app = express();
+const createApp = () => {
+  const app = express();
 
-app.use(cors());
-app.use(express.json());
+  setupMiddlewares(app);
 
-app.use('/docs', express.static(path.join(__dirname, 'docs')));
-routes.init(app);
+  routes.init(app);
 
-app.use(errorHandlerMiddleware);
+  app.use(errorHandlerMiddleware);
 
-export default app;
+  return app;
+};
+
+export default createApp();

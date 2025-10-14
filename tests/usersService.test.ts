@@ -1,4 +1,5 @@
 import { User } from '../src/entities/User';
+import { generateUser, generateUserInput } from './utils/factories';
 
 import { createMockRepository } from './__mocks__/repository';
 
@@ -17,53 +18,60 @@ describe('User Service (mock typeorm)', () => {
     jest.clearAllMocks();
   });
 
-  it('should find a user by options', async () => {
-    const fakeUser: User = { id: 1, name: 'John', email: 'john@test.com' } as User;
-    mockUserRepository.findOne.mockResolvedValue(fakeUser);
+  describe('findUser', () => {
+    it('should find a user by options', async () => {
+      const userId = 1;
+      const fakeUser = generateUser({ id: userId });
+      mockUserRepository.findOne.mockResolvedValue(fakeUser);
 
-    const result = await userService.findUser({ where: { id: 1 } });
+      const result = await userService.findUser({ where: { id: userId } });
 
-    expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
-    expect(result).toEqual(fakeUser);
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: userId } });
+      expect(result).toEqual(fakeUser);
+    });
   });
 
-  it('should create and save a user', async () => {
-    const newUser: User = { id: 2, name: 'Jane', email: 'jane@test.com' } as User;
-    mockUserRepository.save.mockResolvedValue(newUser);
+  describe('createAndSave', () => {
+    it('should create and save a user', async () => {
+      const newUser = generateUser();
+      mockUserRepository.save.mockResolvedValue(newUser);
 
-    const result = await userService.createAndSave(newUser);
+      const result = await userService.createAndSave(newUser);
 
-    expect(mockUserRepository.save).toHaveBeenCalledWith(newUser);
-    expect(result).toEqual(newUser);
+      expect(mockUserRepository.save).toHaveBeenCalledWith(newUser);
+      expect(result).toEqual(newUser);
+    });
   });
 
-  it('should find all users', async () => {
-    const users: User[] = [
-      { id: 1, name: 'John', email: 'john@test.com' } as User,
-      { id: 2, name: 'Jane', email: 'jane@test.com' } as User,
-    ];
-    mockUserRepository.find.mockResolvedValue(users);
+  describe('findAll', () => {
+    it('should find all users', async () => {
+      const users = [generateUser(), generateUser()];
+      mockUserRepository.find.mockResolvedValue(users);
 
-    const result = await userService.findAll();
+      const result = await userService.findAll();
 
-    expect(mockUserRepository.find).toHaveBeenCalled();
-    expect(result).toEqual(users);
+      expect(mockUserRepository.find).toHaveBeenCalled();
+      expect(result).toEqual(users);
+    });
   });
 
-  it('should create many users', async () => {
-    const users: Partial<User>[] = [
-      { name: 'John', email: 'john@test.com' },
-      { name: 'Jane', email: 'jane@test.com' },
-    ];
-    const savedUsers: User[] = [
-      { id: 1, name: 'John', email: 'john@test.com' } as User,
-      { id: 2, name: 'Jane', email: 'jane@test.com' } as User,
-    ];
-    mockUserRepository.save.mockResolvedValue(savedUsers);
+  describe('createMany', () => {
+    it('should create many users', async () => {
+      const userInputs = [generateUserInput(), generateUserInput()];
+      const savedUsers = userInputs.map((input, index) =>
+        generateUser({
+          id: index + 1,
+          name: input.name,
+          lastName: input.lastName,
+          email: input.email,
+        }),
+      );
+      mockUserRepository.save.mockResolvedValue(savedUsers);
 
-    const result = await userService.createMany(users);
+      const result = await userService.createMany(userInputs);
 
-    expect(mockUserRepository.save).toHaveBeenCalledWith(users);
-    expect(result).toEqual(savedUsers);
+      expect(mockUserRepository.save).toHaveBeenCalledWith(userInputs);
+      expect(result).toEqual(savedUsers);
+    });
   });
 });

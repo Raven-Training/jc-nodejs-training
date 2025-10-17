@@ -152,11 +152,139 @@ describe('Users Controller', () => {
   });
 
   it('GET /users returns 403 with invalid token', async () => {
-    const res = await request(app)
-      .get('/users')
-      .set('Authorization', 'Bearer invalid-token');
+    const res = await request(app).get('/users').set('Authorization', 'Bearer invalid-token');
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty('message', 'Invalid or expired token');
     expect(res.body).toHaveProperty('internal_code', 'invalid_token_error');
+  });
+
+  describe('POST /users/login', () => {
+    const loginCredentials = {
+      email: 'john@example.com',
+      password: 'password123',
+    };
+
+    it('should login user with valid credentials', async () => {
+      const mockUser = {
+        id: 1,
+        name: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        createdAt: new Date(),
+      };
+
+      const mockLoginResult = {
+        success: true,
+        token: 'jwt-token-here',
+        user: mockUser,
+        message: 'Login successful',
+      };
+
+      jest.spyOn(userService, 'authenticateUser').mockResolvedValue(mockLoginResult);
+
+      const res = await request(app).post('/users/login').send(loginCredentials);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        message: 'Login successful',
+        token: 'jwt-token-here',
+        user: {
+          id: 1,
+          name: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          createdAt: mockUser.createdAt.toISOString(), // JSON serializa Date como string
+        },
+      });
+      expect(userService.authenticateUser).toHaveBeenCalledWith(
+        loginCredentials.email,
+        loginCredentials.password,
+      );
+    });
+
+    it('should return 401 for invalid credentials', async () => {
+      const mockLoginResult = {
+        success: false,
+        message: 'Invalid credentials',
+      };
+
+      jest.spyOn(userService, 'authenticateUser').mockResolvedValue(mockLoginResult);
+
+      const res = await request(app).post('/users/login').send(loginCredentials);
+
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({
+        message: 'Invalid credentials',
+      });
+      expect(userService.authenticateUser).toHaveBeenCalledWith(
+        loginCredentials.email,
+        loginCredentials.password,
+      );
+    });
+
+    it('should handle service errors during login', async () => {
+      const error = new Error('Database connection failed');
+      jest.spyOn(userService, 'authenticateUser').mockRejectedValue(error);
+
+      const res = await request(app).post('/users/login').send(loginCredentials);
+
+      expect(res.status).toBe(500);
+      expect(userService.authenticateUser).toHaveBeenCalledWith(
+        loginCredentials.email,
+        loginCredentials.password,
+      );
+    });
+
+    it('should fail validation with invalid email format', async () => {
+      const invalidCredentials = {
+        email: 'invalid-email',
+        password: 'password123',
+      };
+
+      const res = await request(app).post('/users/login').send(invalidCredentials);
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Invalid email format',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation with missing password', async () => {
+      const invalidCredentials = {
+        email: 'john@example.com',
+      };
+
+      const res = await request(app).post('/users/login').send(invalidCredentials);
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Password is required',
+          }),
+        ]),
+      );
+    });
+
+    it('should fail validation with missing email', async () => {
+      const invalidCredentials = {
+        password: 'password123',
+      };
+
+      const res = await request(app).post('/users/login').send(invalidCredentials);
+
+      expect(res.status).toBe(400);
+      expect(res.body.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            msg: 'Invalid email format',
+          }),
+        ]),
+      );
+    });
   });
 });

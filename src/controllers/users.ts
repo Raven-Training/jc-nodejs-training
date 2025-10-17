@@ -36,6 +36,30 @@ export async function createUser(
   }
 }
 
+export async function loginUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> {
+  try {
+    const { email, password } = req.body;
+    const result = await userService.authenticateUser(email, password);
+
+    if (!result.success) {
+      return res.status(status.UNAUTHORIZED).json({ message: result.message });
+    }
+
+    return res.status(status.OK).json({
+      message: result.message,
+      token: result.token,
+      user: result.user,
+    });
+  } catch (err) {
+    console.error('Error during login:', err);
+    next(err);
+  }
+}
+
 export function getUserById(
   req: Request,
   res: Response,

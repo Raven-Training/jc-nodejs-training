@@ -1,5 +1,5 @@
-import { DeepPartial, FindManyOptions, FindOneOptions } from 'typeorm';
 import bcrypt from 'bcrypt';
+import { DeepPartial, FindManyOptions, FindOneOptions } from 'typeorm';
 
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';

@@ -1,16 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { authenticationError, invalidTokenError } from '../errors';
-import { verifyToken, JwtPayload } from '../helpers/jwt.helper';
-
-// Extender el tipo Request para incluir user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
-  }
-}
+import { verifyToken } from '../helpers/jwt.helper';
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
@@ -23,7 +14,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   try {
     const decoded = verifyToken(token);
     req.user = decoded;
-    console.log(`User ${decoded.userId} authenticated successfully`); 
+    console.log(`User ${decoded.userId} authenticated successfully`);
     next();
   } catch (error) {
     console.error('Token verification failed:', error);

@@ -3,6 +3,7 @@ import request from 'supertest';
 
 import app from '../src/app';
 import { User } from '../src/entities/User';
+import { generateToken } from '../src/helpers/jwt.helper';
 import * as userService from '../src/services/users';
 import { generateUser, generateUserInput, generateInvalidPassword } from './utils/factories';
 
@@ -134,5 +135,28 @@ describe('Users Controller', () => {
       expect(res.status).toBe(404);
       expect(res.body).toHaveProperty('message', 'User not found');
     });
+  });
+
+  it('GET /users returns 401 without token', async () => {
+    const res = await request(app).get('/users');
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'Access token required');
+    expect(res.body).toHaveProperty('internal_code', 'authentication_error');
+  });
+
+  it('GET /users/:id returns 401 without token', async () => {
+    const res = await request(app).get('/users/1');
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('message', 'Access token required');
+    expect(res.body).toHaveProperty('internal_code', 'authentication_error');
+  });
+
+  it('GET /users returns 403 with invalid token', async () => {
+    const res = await request(app)
+      .get('/users')
+      .set('Authorization', 'Bearer invalid-token');
+    expect(res.status).toBe(403);
+    expect(res.body).toHaveProperty('message', 'Invalid or expired token');
+    expect(res.body).toHaveProperty('internal_code', 'invalid_token_error');
   });
 });

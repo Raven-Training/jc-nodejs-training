@@ -19,6 +19,10 @@ const config: Config = {
       database: process.env.DB_NAME || 'mydb',
     },
   },
+  jwt: {
+    secret: process.env.JWT_SECRET || 'default-secret-key',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  },
   todosApi: {
     baseURL: process.env.TODOS_API_BASE_URL || 'https://jsonplaceholder.typicode.com',
   },

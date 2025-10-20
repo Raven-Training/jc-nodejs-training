@@ -19,12 +19,18 @@ export interface ApiBaseConfig {
   baseURL: ENV_VAR;
 }
 
+export interface JwtConfig {
+  secret: string;
+  expiresIn: string;
+}
+
 export interface Config {
   nodeEnv: string;
   api: ApiConfig;
   common: {
     db: DatabaseConfig;
   };
+  jwt: JwtConfig;
   todosApi: ApiBaseConfig;
   pokeApi: ApiBaseConfig;
 }

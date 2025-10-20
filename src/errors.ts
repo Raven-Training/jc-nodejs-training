@@ -5,6 +5,9 @@ import { createInternalError } from './middlewares/error.middleware';
 export const AUTHENTICATION_ERROR = 'authentication_error';
 export const authenticationError = createInternalError(AUTHENTICATION_ERROR, status.UNAUTHORIZED);
 
+export const INVALID_TOKEN_ERROR = 'invalid_token_error';
+export const invalidTokenError = createInternalError(INVALID_TOKEN_ERROR, status.FORBIDDEN);
+
 export const DATABASE_ERROR = 'database_error';
 export const databaseError = createInternalError(DATABASE_ERROR, status.SERVICE_UNAVAILABLE);
 

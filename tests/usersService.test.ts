@@ -48,14 +48,48 @@ describe('User Service (mock typeorm)', () => {
   });
 
   describe('findAll', () => {
-    it('should find all users', async () => {
+    it('should return paginated users with metadata', async () => {
       const users = [generateUser(), generateUser()];
-      mockUserRepository.find.mockResolvedValue(users);
+      const total = 25;
+      mockUserRepository.findAndCount.mockResolvedValue([users, total]);
 
-      const result = await userService.findAll();
+      const paginationParams = { page: 1, limit: 10, offset: 0 };
+      const result = await userService.findAll(paginationParams, undefined);
 
-      expect(mockUserRepository.find).toHaveBeenCalled();
-      expect(result).toEqual(users);
+      expect(mockUserRepository.findAndCount).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toEqual({
+        data: users,
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 25,
+          totalPages: 3,
+          hasNext: true,
+          hasPrev: false,
+        },
+      });
+    });
+
+    it('should handle last page correctly with pagination', async () => {
+      const users = [generateUser()];
+      const total = 21;
+      mockUserRepository.findAndCount.mockResolvedValue([users, total]);
+
+      const paginationParams = { page: 3, limit: 10, offset: 20 };
+      const result = await userService.findAll(paginationParams, undefined);
+
+      expect(result.pagination).toEqual({
+        page: 3,
+        limit: 10,
+        total: 21,
+        totalPages: 3,
+        hasNext: false,
+        hasPrev: true,
+      });
     });
   });
 

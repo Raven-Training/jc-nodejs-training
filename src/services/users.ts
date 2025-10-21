@@ -4,7 +4,9 @@ import { DeepPartial, FindManyOptions, FindOneOptions } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
 import { generateToken } from '../helpers/jwt.helper';
+import { calculatePaginationMetadata } from '../helpers/pagination.helper';
 import { LoginResult } from '../types/auth.types';
+import { PaginationParams, PaginatedResponse } from '../types/pagination.types';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -30,8 +32,26 @@ export function createAndSave(user: User): Promise<User> {
   return userRepository.save(user);
 }
 
-export function findAll(options?: FindManyOptions): Promise<User[]> {
-  return userRepository.find(options);
+export async function findAll(
+  paginationParams: PaginationParams,
+  options?: FindManyOptions<User>,
+): Promise<PaginatedResponse<User>> {
+  const { page, limit, offset } = paginationParams;
+
+  const findOptions: FindManyOptions<User> = {
+    ...options,
+    skip: offset,
+    take: limit,
+    order: { createdAt: 'DESC' },
+  };
+
+  const [users, total] = await userRepository.findAndCount(findOptions);
+  const pagination = calculatePaginationMetadata(page, limit, total);
+
+  return {
+    data: users,
+    pagination,
+  };
 }
 
 export function createMany(users: DeepPartial<User>[]): Promise<User[]> {

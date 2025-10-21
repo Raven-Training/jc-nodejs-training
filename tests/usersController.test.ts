@@ -11,19 +11,94 @@ jest.mock('../src/services/users');
 
 describe('Users Controller', () => {
   describe('GET /users', () => {
-    it('should return all users when GET /users is called', async () => {
+    it('should return paginated users when GET /users is called', async () => {
       const mockUsers: User[] = [generateUser()];
+      const mockPaginatedResponse = {
+        data: mockUsers,
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+      };
       const token = generateToken({ userId: 1 });
-      (userService.findAll as jest.Mock).mockResolvedValue(mockUsers);
+      (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
 
       const res = await request(app).get('/users').set('Authorization', `Bearer ${token}`);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(
-        mockUsers.map((user) => ({
+      expect(res.body).toEqual({
+        data: mockUsers.map((user) => ({
           ...user,
           createdAt: user.createdAt.toISOString(),
         })),
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+      });
+      expect(userService.findAll).toHaveBeenCalledWith(
+        {
+          page: 1,
+          limit: 10,
+          offset: 0,
+        },
+        undefined,
       );
+    });
+
+    it('should handle custom page parameter but fixed limit', async () => {
+      const mockUsers: User[] = [generateUser(), generateUser()];
+      const mockPaginatedResponse = {
+        data: mockUsers,
+        pagination: {
+          page: 2,
+          limit: 10,
+          total: 25,
+          totalPages: 3,
+          hasNext: true,
+          hasPrev: true,
+        },
+      };
+      const token = generateToken({ userId: 1 });
+      (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
+      const res = await request(app)
+        .get('/users?page=2&limit=5')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.pagination).toEqual({
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+        hasNext: true,
+        hasPrev: true,
+      });
+      expect(userService.findAll).toHaveBeenCalledWith(
+        {
+          page: 2,
+          limit: 10,
+          offset: 10,
+        },
+        undefined,
+      );
+    });
+
+    it('should handle database errors with proper logging', async () => {
+      const token = generateToken({ userId: 1 });
+      const databaseError = new Error('Database connection failed');
+      (userService.findAll as jest.Mock).mockRejectedValue(databaseError);
+
+      const res = await request(app).get('/users').set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(500);
       expect(userService.findAll).toHaveBeenCalled();
     });
   });

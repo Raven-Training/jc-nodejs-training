@@ -84,19 +84,23 @@ describe('User Service (mock typeorm)', () => {
     const password = 'password123';
     const hashedPassword = '$2b$10$hashedPassword';
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should authenticate user with valid credentials', async () => {
-      const mockUser: User = {
+    const generateTestUser = (overrides: Partial<User> = {}) => {
+      return generateUser({
         id: 1,
         name: 'John',
         lastName: 'Doe',
         email: 'john@test.com',
         password: hashedPassword,
-        createdAt: new Date(),
-      } as User;
+        ...overrides,
+      });
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should authenticate user with valid credentials', async () => {
+      const mockUser = generateTestUser();
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -139,14 +143,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should return failure for invalid password', async () => {
-      const mockUser: User = {
-        id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-        password: hashedPassword,
-        createdAt: new Date(),
-      } as User;
+      const mockUser = generateTestUser();
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -180,14 +177,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should handle bcrypt comparison errors', async () => {
-      const mockUser: User = {
-        id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-        password: hashedPassword,
-        createdAt: new Date(),
-      } as User;
+      const mockUser = generateTestUser();
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -206,14 +196,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should exclude password from returned user object', async () => {
-      const mockUser: User = {
-        id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-        password: hashedPassword,
-        createdAt: new Date(),
-      } as User;
+      const mockUser = generateTestUser();
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 

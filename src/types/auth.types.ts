@@ -6,3 +6,15 @@ export interface LoginResult {
   user?: Omit<User, 'password'>;
   message: string;
 }
+
+export interface ILoginResponse {
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    lastName: string;
+    email: string;
+    createdAt: Date;
+  };
+}

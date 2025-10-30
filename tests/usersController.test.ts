@@ -142,21 +142,21 @@ describe('Users Controller', () => {
     });
   });
 
-  it('GET /users returns 401 without token', async () => {
+  it('should return 401 when GET /users is called without token', async () => {
     const res = await request(app).get('/users');
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('message', 'Access token required');
     expect(res.body).toHaveProperty('internal_code', 'authentication_error');
   });
 
-  it('GET /users/:id returns 401 without token', async () => {
+  it('should return 401 when GET /users/:id is called without token', async () => {
     const res = await request(app).get('/users/1');
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('message', 'Access token required');
     expect(res.body).toHaveProperty('internal_code', 'authentication_error');
   });
 
-  it('GET /users returns 403 with invalid token', async () => {
+  it('should return 403 when GET /users is called with invalid token', async () => {
     const res = await request(app).get('/users').set('Authorization', 'Bearer invalid-token');
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty('message', 'Invalid or expired token');

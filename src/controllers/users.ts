@@ -4,6 +4,7 @@ import status from 'http-status';
 import { User } from '../entities/User';
 import { notFoundError } from '../errors';
 import { hashPassword } from '../helpers/password.helper';
+import { mapLoginResponse } from '../mappers/user.mapper';
 import * as userService from '../services/users';
 
 export function getUsers(
@@ -49,11 +50,9 @@ export async function loginUser(
       return res.status(status.UNAUTHORIZED).json({ message: result.message });
     }
 
-    return res.status(status.OK).json({
-      message: result.message,
-      token: result.token,
-      user: result.user,
-    });
+    return res
+      .status(status.OK)
+      .json(mapLoginResponse(result.token!, result.user!, result.message!));
   } catch (err) {
     console.error('Error during login:', err);
     next(err);

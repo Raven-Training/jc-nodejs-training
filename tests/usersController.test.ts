@@ -6,6 +6,14 @@ import { User } from '../src/entities/User';
 import { generateToken } from '../src/helpers/jwt.helper';
 import * as userService from '../src/services/users';
 import { generateUser, generateUserInput, generateInvalidPassword } from './utils/factories';
+import {
+  generatePaginatedResponse,
+  generatePaginationMetadata,
+  generateSuccessfulLoginResponse,
+  generateFailedLoginResponse,
+  generateInvalidLoginCredentials,
+  generateDatabaseError,
+} from './utils/testGenerators';
 
 jest.mock('../src/services/users');
 
@@ -13,17 +21,10 @@ describe('Users Controller', () => {
   describe('GET /users', () => {
     it('should return paginated users when GET /users is called', async () => {
       const mockUsers: User[] = [generateUser()];
-      const mockPaginatedResponse = {
-        data: mockUsers,
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 1,
-          totalPages: 1,
-          hasNext: false,
-          hasPrev: false,
-        },
-      };
+      const mockPaginatedResponse = generatePaginatedResponse(
+        mockUsers,
+        generatePaginationMetadata(1, 10, 1),
+      );
       const token = generateToken({ userId: 1 });
       (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
 
@@ -55,17 +56,10 @@ describe('Users Controller', () => {
 
     it('should handle custom page parameter but fixed limit', async () => {
       const mockUsers: User[] = [generateUser(), generateUser()];
-      const mockPaginatedResponse = {
-        data: mockUsers,
-        pagination: {
-          page: 2,
-          limit: 10,
-          total: 25,
-          totalPages: 3,
-          hasNext: true,
-          hasPrev: true,
-        },
-      };
+      const mockPaginatedResponse = generatePaginatedResponse(
+        mockUsers,
+        generatePaginationMetadata(2, 10, 25),
+      );
       const token = generateToken({ userId: 1 });
       (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
       const res = await request(app)
@@ -93,7 +87,7 @@ describe('Users Controller', () => {
 
     it('should handle database errors with proper logging', async () => {
       const token = generateToken({ userId: 1 });
-      const databaseError = new Error('Database connection failed');
+      const databaseError = generateDatabaseError();
       (userService.findAll as jest.Mock).mockRejectedValue(databaseError);
 
       const res = await request(app).get('/users').set('Authorization', `Bearer ${token}`);
@@ -217,25 +211,27 @@ describe('Users Controller', () => {
     });
   });
 
-  it('should return 401 when GET /users is called without token', async () => {
-    const res = await request(app).get('/users');
-    expect(res.status).toBe(401);
-    expect(res.body).toHaveProperty('message', 'Access token required');
-    expect(res.body).toHaveProperty('internal_code', 'authentication_error');
-  });
+  describe('Token Authentication', () => {
+    it('should return 401 when GET /users is called without token', async () => {
+      const res = await request(app).get('/users');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('message', 'Access token required');
+      expect(res.body).toHaveProperty('internal_code', 'authentication_error');
+    });
 
-  it('should return 401 when GET /users/:id is called without token', async () => {
-    const res = await request(app).get('/users/1');
-    expect(res.status).toBe(401);
-    expect(res.body).toHaveProperty('message', 'Access token required');
-    expect(res.body).toHaveProperty('internal_code', 'authentication_error');
-  });
+    it('should return 401 when GET /users/:id is called without token', async () => {
+      const res = await request(app).get('/users/1');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('message', 'Access token required');
+      expect(res.body).toHaveProperty('internal_code', 'authentication_error');
+    });
 
-  it('should return 403 when GET /users is called with invalid token', async () => {
-    const res = await request(app).get('/users').set('Authorization', 'Bearer invalid-token');
-    expect(res.status).toBe(403);
-    expect(res.body).toHaveProperty('message', 'Invalid or expired token');
-    expect(res.body).toHaveProperty('internal_code', 'invalid_token_error');
+    it('should return 403 when GET /users is called with invalid token', async () => {
+      const res = await request(app).get('/users').set('Authorization', 'Bearer invalid-token');
+      expect(res.status).toBe(403);
+      expect(res.body).toHaveProperty('message', 'Invalid or expired token');
+      expect(res.body).toHaveProperty('internal_code', 'invalid_token_error');
+    });
   });
 
   describe('POST /users/login', () => {
@@ -252,13 +248,7 @@ describe('Users Controller', () => {
         email: 'john@example.com',
         createdAt: new Date(),
       };
-
-      const mockLoginResult = {
-        success: true,
-        token: 'jwt-token-here',
-        user: mockUser,
-        message: 'Login successful',
-      };
+      const mockLoginResult = generateSuccessfulLoginResponse('jwt-token-here', mockUser);
 
       jest.spyOn(userService, 'authenticateUser').mockResolvedValue(mockLoginResult);
 
@@ -273,7 +263,7 @@ describe('Users Controller', () => {
           name: 'John',
           lastName: 'Doe',
           email: 'john@example.com',
-          createdAt: mockUser.createdAt.toISOString(), // JSON serializa Date como string
+          createdAt: mockUser.createdAt.toISOString(),
         },
       });
       expect(userService.authenticateUser).toHaveBeenCalledWith(
@@ -283,10 +273,7 @@ describe('Users Controller', () => {
     });
 
     it('should return 401 for invalid credentials', async () => {
-      const mockLoginResult = {
-        success: false,
-        message: 'Invalid credentials',
-      };
+      const mockLoginResult = generateFailedLoginResponse();
 
       jest.spyOn(userService, 'authenticateUser').mockResolvedValue(mockLoginResult);
 
@@ -303,7 +290,7 @@ describe('Users Controller', () => {
     });
 
     it('should handle service errors during login', async () => {
-      const error = new Error('Database connection failed');
+      const error = generateDatabaseError();
       jest.spyOn(userService, 'authenticateUser').mockRejectedValue(error);
 
       const res = await request(app).post('/users/login').send(loginCredentials);
@@ -316,10 +303,7 @@ describe('Users Controller', () => {
     });
 
     it('should fail validation with invalid email format', async () => {
-      const invalidCredentials = {
-        email: 'invalid-email',
-        password: 'password123',
-      };
+      const invalidCredentials = generateInvalidLoginCredentials('email');
 
       const res = await request(app).post('/users/login').send(invalidCredentials);
 
@@ -334,9 +318,7 @@ describe('Users Controller', () => {
     });
 
     it('should fail validation with missing password', async () => {
-      const invalidCredentials = {
-        email: 'john@example.com',
-      };
+      const invalidCredentials = generateInvalidLoginCredentials('password');
 
       const res = await request(app).post('/users/login').send(invalidCredentials);
 
@@ -351,9 +333,7 @@ describe('Users Controller', () => {
     });
 
     it('should fail validation with missing email', async () => {
-      const invalidCredentials = {
-        password: 'password123',
-      };
+      const invalidCredentials = generateInvalidLoginCredentials('both');
 
       const res = await request(app).post('/users/login').send(invalidCredentials);
 

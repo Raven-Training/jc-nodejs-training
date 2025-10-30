@@ -1,10 +1,7 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
 
 import config from '../config/config';
-
-export interface JwtPayload {
-  userId: number;
-}
+import { JwtPayload } from '../types/auth.types';
 
 export const generateToken = (payload: JwtPayload): string => {
   return jwt.sign(payload, config.jwt.secret, {

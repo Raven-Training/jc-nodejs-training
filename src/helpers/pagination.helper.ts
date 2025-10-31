@@ -3,6 +3,8 @@ import {
   PaginationParams,
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
+  FIRST_PAGE,
+  MINIMUM_PAGE,
 } from '../types/pagination.types';
 
 export function calculatePaginationMetadata(
@@ -18,16 +20,18 @@ export function calculatePaginationMetadata(
     total,
     totalPages,
     hasNext: page < totalPages,
-    hasPrev: page > 1,
+    hasPrev: page > FIRST_PAGE,
   };
 }
 
-export function createPaginationParams(page: number): PaginationParams {
-  const limit = DEFAULT_LIMIT;
-  const offset = (page - 1) * limit;
+export function createPaginationParams(
+  page: number,
+  limit: number = DEFAULT_LIMIT,
+): PaginationParams {
+  const offset = (page - FIRST_PAGE) * limit;
   return { page, limit, offset };
 }
 
 export function getValidPage(pageParam?: string): number {
-  return Math.max(1, parseInt(pageParam || '') || DEFAULT_PAGE);
+  return Math.max(MINIMUM_PAGE, parseInt(pageParam || '') || DEFAULT_PAGE);
 }

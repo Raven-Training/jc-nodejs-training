@@ -1,5 +1,9 @@
 import { User } from '../entities/User';
 
+export interface JwtPayload {
+  userId: number;
+}
+
 export interface LoginResult {
   success: boolean;
   token?: string;

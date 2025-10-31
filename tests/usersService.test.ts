@@ -2,6 +2,13 @@ import bcrypt from 'bcrypt';
 
 import { User } from '../src/entities/User';
 import { generateUser, generateUserInput } from './utils/factories';
+import {
+  generateTestUser,
+  generateExpectedUserResponse,
+  generatePaginationParams,
+  generateDatabaseError,
+  generateBcryptError,
+} from './utils/testGenerators';
 
 import { createMockRepository } from './__mocks__/repository';
 
@@ -48,14 +55,48 @@ describe('User Service (mock typeorm)', () => {
   });
 
   describe('findAll', () => {
-    it('should find all users', async () => {
+    it('should return paginated users with metadata', async () => {
       const users = [generateUser(), generateUser()];
-      mockUserRepository.find.mockResolvedValue(users);
+      const total = 25;
+      mockUserRepository.findAndCount.mockResolvedValue([users, total]);
 
-      const result = await userService.findAll();
+      const paginationParams = generatePaginationParams(1, 10);
+      const result = await userService.findAll(paginationParams);
 
-      expect(mockUserRepository.find).toHaveBeenCalled();
-      expect(result).toEqual(users);
+      expect(mockUserRepository.findAndCount).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toEqual({
+        data: users,
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 25,
+          totalPages: 3,
+          hasNext: true,
+          hasPrev: false,
+        },
+      });
+    });
+
+    it('should handle last page correctly with pagination', async () => {
+      const users = [generateUser()];
+      const total = 21;
+      mockUserRepository.findAndCount.mockResolvedValue([users, total]);
+
+      const paginationParams = generatePaginationParams(3, 10);
+      const result = await userService.findAll(paginationParams);
+
+      expect(result.pagination).toEqual({
+        page: 3,
+        limit: 10,
+        total: 21,
+        totalPages: 3,
+        hasNext: false,
+        hasPrev: true,
+      });
     });
   });
 
@@ -84,23 +125,12 @@ describe('User Service (mock typeorm)', () => {
     const password = 'password123';
     const hashedPassword = '$2b$10$hashedPassword';
 
-    const generateTestUser = (overrides: Partial<User> = {}) => {
-      return generateUser({
-        id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-        password: hashedPassword,
-        ...overrides,
-      });
-    };
-
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
     it('should authenticate user with valid credentials', async () => {
-      const mockUser = generateTestUser();
+      const mockUser = generateTestUser(hashedPassword);
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -116,13 +146,7 @@ describe('User Service (mock typeorm)', () => {
       expect(result).toEqual({
         success: true,
         token: expect.any(String),
-        user: {
-          id: 1,
-          name: 'John',
-          lastName: 'Doe',
-          email: 'john@test.com',
-          createdAt: expect.any(Date),
-        },
+        user: generateExpectedUserResponse(),
         message: 'Login successful',
       });
     });
@@ -143,7 +167,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should return failure for invalid password', async () => {
-      const mockUser = generateTestUser();
+      const mockUser = generateTestUser(hashedPassword);
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -163,7 +187,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should handle database errors', async () => {
-      const databaseError = new Error('Database connection failed');
+      const databaseError = generateDatabaseError();
       mockUserRepository.findOne.mockRejectedValue(databaseError);
 
       await expect(userService.authenticateUser(email, password)).rejects.toThrow(
@@ -177,11 +201,11 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should handle bcrypt comparison errors', async () => {
-      const mockUser = generateTestUser();
+      const mockUser = generateTestUser(hashedPassword);
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
-      const bcryptError = new Error('bcrypt comparison failed');
+      const bcryptError = generateBcryptError();
       (bcrypt.compare as jest.Mock).mockRejectedValue(bcryptError);
 
       await expect(userService.authenticateUser(email, password)).rejects.toThrow(
@@ -196,7 +220,7 @@ describe('User Service (mock typeorm)', () => {
     });
 
     it('should exclude password from returned user object', async () => {
-      const mockUser = generateTestUser();
+      const mockUser = generateTestUser(hashedPassword);
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
@@ -207,13 +231,7 @@ describe('User Service (mock typeorm)', () => {
       expect(result.success).toBe(true);
       expect(result.user).toBeDefined();
       expect(result.user).not.toHaveProperty('password');
-      expect(result.user).toEqual({
-        id: 1,
-        name: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-        createdAt: expect.any(Date),
-      });
+      expect(result.user).toEqual(generateExpectedUserResponse());
     });
   });
 });

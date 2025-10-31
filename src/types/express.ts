@@ -1,4 +1,4 @@
-import { JwtPayload } from '../helpers/jwt.helper';
+import { JwtPayload } from './auth.types';
 
 /* eslint-disable @typescript-eslint/no-namespace */
 declare global {

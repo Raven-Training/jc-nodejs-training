@@ -17,7 +17,7 @@ export async function getUsers(
     const page = getValidPage(req.query.page as string);
     const paginationParams = createPaginationParams(page);
 
-    const result = await userService.findAll(paginationParams, undefined);
+    const result = await userService.findAll(paginationParams);
 
     console.log(`Users retrieved successfully. Page: ${page}, Total: ${result.pagination.total}`);
 

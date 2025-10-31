@@ -44,14 +44,11 @@ describe('Users Controller', () => {
           hasPrev: false,
         },
       });
-      expect(userService.findAll).toHaveBeenCalledWith(
-        {
-          page: 1,
-          limit: 10,
-          offset: 0,
-        },
-        undefined,
-      );
+      expect(userService.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        offset: 0,
+      });
     });
 
     it('should handle custom page parameter but fixed limit', async () => {
@@ -75,14 +72,11 @@ describe('Users Controller', () => {
         hasNext: true,
         hasPrev: true,
       });
-      expect(userService.findAll).toHaveBeenCalledWith(
-        {
-          page: 2,
-          limit: 10,
-          offset: 10,
-        },
-        undefined,
-      );
+      expect(userService.findAll).toHaveBeenCalledWith({
+        page: 2,
+        limit: 10,
+        offset: 10,
+      });
     });
 
     it('should handle database errors with proper logging', async () => {

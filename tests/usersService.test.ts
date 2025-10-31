@@ -61,7 +61,7 @@ describe('User Service (mock typeorm)', () => {
       mockUserRepository.findAndCount.mockResolvedValue([users, total]);
 
       const paginationParams = generatePaginationParams(1, 10);
-      const result = await userService.findAll(paginationParams, undefined);
+      const result = await userService.findAll(paginationParams);
 
       expect(mockUserRepository.findAndCount).toHaveBeenCalledWith({
         skip: 0,
@@ -87,7 +87,7 @@ describe('User Service (mock typeorm)', () => {
       mockUserRepository.findAndCount.mockResolvedValue([users, total]);
 
       const paginationParams = generatePaginationParams(3, 10);
-      const result = await userService.findAll(paginationParams, undefined);
+      const result = await userService.findAll(paginationParams);
 
       expect(result.pagination).toEqual({
         page: 3,

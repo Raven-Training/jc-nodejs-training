@@ -1,4 +1,5 @@
 import { User } from '../entities/User';
+import { UserRole } from './user.types';
 
 export interface JwtPayload {
   userId: number;
@@ -19,6 +20,7 @@ export interface ILoginResponse {
     name: string;
     lastName: string;
     email: string;
+    role: UserRole;
     createdAt: Date;
   };
 }

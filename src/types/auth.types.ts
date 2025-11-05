@@ -1,4 +1,5 @@
 import { User } from '../entities/User';
+
 import { UserRole } from './user.types';
 
 export interface JwtPayload {

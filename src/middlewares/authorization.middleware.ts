@@ -4,7 +4,7 @@ import { authorizationError } from '../errors';
 import * as userService from '../services/users';
 import { UserRole } from '../types/user.types';
 
-export const createRoleMiddleware = (allowedRoles: string[]) => {
+export const createRoleMiddleware = (allowedRoles: UserRole[]) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (!req.user?.userId) {
@@ -18,7 +18,7 @@ export const createRoleMiddleware = (allowedRoles: string[]) => {
         console.log(
           `Access denied: User ${req.user.userId} with role ${userRole} attempted action requiring roles: ${allowedRoles.join(', ')}`,
         );
-        return next(authorizationError(`Required roles: ${allowedRoles.join(', ')}`));
+        return next(authorizationError('Insufficient permissions'));
       }
 
       console.log(`Role-based access granted to user ${req.user.userId} with role ${userRole}`);

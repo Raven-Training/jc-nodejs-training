@@ -10,6 +10,7 @@ export interface LoginResult {
   token?: string;
   user?: Omit<User, 'password'>;
   message: string;
+  role: UserRole;
 }
 
 export interface ILoginResponse {

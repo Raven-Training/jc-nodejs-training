@@ -42,17 +42,16 @@ const checkEmailExistence = async (
   next();
 };
 
-export const validateRegistration = validate(
-  [
-    body('email').isEmail().withMessage('Invalid email format'),
-    body('password')
-      .isLength({ min: 8 })
-      .withMessage('Password must be at least 8 characters long'),
-    body('name').notEmpty().withMessage('Name is required'),
-    body('lastName').notEmpty().withMessage('Last name is required'),
-  ],
-  [checkEmailExistence],
-);
+const userValidationRules = [
+  body('email').isEmail().withMessage('Invalid email format'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+  body('name').notEmpty().withMessage('Name is required'),
+  body('lastName').notEmpty().withMessage('Last name is required'),
+];
+
+export const validateRegistration = validate(userValidationRules, [checkEmailExistence]);
+
+export const validateAdminUserCreation = validate(userValidationRules, []);
 
 export const validateLogin = validate([
   body('email').isEmail().withMessage('Invalid email format'),

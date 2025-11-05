@@ -72,7 +72,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
   if (!isValidUser) {
     console.log(`Login attempt failed for email: ${email}`);
-    return { success: false, message: 'Invalid credentials' };
+    return { success: false, message: 'Invalid credentials', role: UserRole.USER };
   }
 
   console.log(`User ${user.email} logged in successfully`);
@@ -83,6 +83,7 @@ export async function authenticateUser(email: string, password: string): Promise
     token: generateToken({ userId: user.id }),
     user: userWithoutPassword,
     message: 'Login successful',
+    role: user.role,
   };
 }
 

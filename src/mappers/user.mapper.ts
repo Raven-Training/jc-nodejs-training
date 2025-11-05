@@ -15,6 +15,7 @@ export const mapLoginResponse = (
     name: user.name,
     lastName: user.lastName,
     email: user.email,
+    role: user.role,
     createdAt: user.createdAt,
   },
 });

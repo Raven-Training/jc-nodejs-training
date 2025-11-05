@@ -18,11 +18,3 @@ export interface UserWithRole {
   role: UserRole;
   createdAt: Date;
 }
-
-export const isAdminUser = (user: { role: UserRole }): boolean => {
-  return user.role === UserRole.ADMIN;
-};
-
-export const isValidUserRole = (role: string): role is UserRole => {
-  return Object.values(UserRole).includes(role as UserRole);
-};

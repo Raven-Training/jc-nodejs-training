@@ -7,7 +7,11 @@ import { getTodos } from './controllers/todos';
 import { getUsers, getUserById, createUser, loginUser } from './controllers/users';
 import { authenticateToken } from './middlewares/auth.middleware';
 import { requireAdmin } from './middlewares/authorization.middleware';
-import { validateRegistration, validateLogin, validateAdminUserCreation } from './middlewares/validation.middleware';
+import {
+  validateRegistration,
+  validateLogin,
+  validateAdminUserCreation,
+} from './middlewares/validation.middleware';
 
 export const init = (app: Application): void => {
   // Public routes

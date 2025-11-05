@@ -1,4 +1,5 @@
 import { User } from '../../src/entities/User';
+import { UserRole } from '../../src/types/user.types';
 import { generateUser } from './factories';
 
 export const generateTestUser = (hashedPassword: string, overrides: Partial<User> = {}) => {
@@ -17,7 +18,16 @@ export const generateExpectedUserResponse = (overrides = {}) => ({
   name: 'John',
   lastName: 'Doe',
   email: 'john@test.com',
+  role: UserRole.USER,
   createdAt: expect.any(Date),
+  ...overrides,
+});
+
+export const generateAdminUserData = (overrides = {}) => ({
+  name: 'Admin',
+  lastName: 'User',
+  email: 'admin@test.com',
+  password: 'password123',
   ...overrides,
 });
 
@@ -28,6 +38,7 @@ export const generateSuccessfulLoginResponse = (
     name: 'John',
     lastName: 'Doe',
     email: 'john@example.com',
+    role: UserRole.USER,
     createdAt: new Date(),
   },
   message = 'Login successful',
@@ -36,11 +47,46 @@ export const generateSuccessfulLoginResponse = (
   token,
   user,
   message,
+  role: user.role || UserRole.USER,
 });
 
 export const generateFailedLoginResponse = (message = 'Invalid credentials') => ({
   success: false,
   message,
+  role: UserRole.USER,
+});
+
+export const generateExpectedLoginResult = (
+  overrides: {
+    success?: boolean;
+    token?: string;
+    message?: string;
+    role?: UserRole;
+    userOverrides?: object;
+  } = {},
+) => ({
+  success: overrides.success ?? true,
+  token: overrides.token ?? expect.any(String),
+  user: expect.objectContaining({
+    id: expect.any(Number),
+    name: expect.any(String),
+    lastName: expect.any(String),
+    email: expect.any(String),
+    role: overrides.role ?? UserRole.USER,
+    createdAt: expect.any(Date),
+    ...overrides.userOverrides,
+  }),
+  message: overrides.message ?? 'Login successful',
+  role: overrides.role ?? UserRole.USER,
+});
+
+export const generateExpectedFailureResult = (
+  message = 'Invalid credentials',
+  role = UserRole.USER,
+) => ({
+  success: false,
+  message,
+  role,
 });
 
 export const generateInvalidLoginCredentials = (type: 'email' | 'password' | 'both' = 'both') => {

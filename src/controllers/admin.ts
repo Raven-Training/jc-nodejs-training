@@ -13,11 +13,13 @@ export async function users(
     const adminUserData: CreateAdminUserRequest = req.body;
     const adminUser = await userService.createAdminUser(adminUserData);
 
-    console.log(`Admin user ${adminUser.email} created/updated successfully by admin ${req.user?.userId}`);
+    console.log(
+      `Admin user ${adminUser.email} created/updated successfully by admin ${req.user?.userId}`,
+    );
 
-    return res.status(status.CREATED).json({ 
+    return res.status(status.CREATED).json({
       user: adminUser,
-      message: 'Admin user created successfully'
+      message: 'Admin user created successfully',
     });
   } catch (err) {
     console.error(`Database error while creating admin user by admin ${req.user?.userId}:`, err);

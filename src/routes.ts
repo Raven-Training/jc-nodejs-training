@@ -1,7 +1,7 @@
 import { Application } from 'express';
 
 import { createAdminUser } from './controllers/admin';
-import { getAllPokemons } from './controllers/cards';
+import { getAllPokemons, purchasePokemon, getPokemonCollection } from './controllers/cards';
 import { healthCheck } from './controllers/healthCheck';
 import { getTodos } from './controllers/todos';
 import { getUsers, getUserById, createUser, loginUser } from './controllers/users';
@@ -11,6 +11,8 @@ import {
   validateRegistration,
   validateLogin,
   validateAdminUserCreation,
+  validatePokemonPurchase,
+  validatePokemonCollection,
 } from './middlewares/validation.middleware';
 
 export const init = (app: Application): void => {
@@ -24,6 +26,10 @@ export const init = (app: Application): void => {
   // Protected routes
   app.get('/users', authenticateToken, getUsers);
   app.get('/users/:id', authenticateToken, getUserById);
+
+  // Pokemon routes (protected)
+  app.post('/cards/purchase', authenticateToken, validatePokemonPurchase, purchasePokemon);
+  app.get('/cards/collection', authenticateToken, validatePokemonCollection, getPokemonCollection);
 
   // Admin routes
   app.post(

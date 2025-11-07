@@ -42,3 +42,6 @@ export const TYPE_BONUS_MULTIPLIER = 10;
 
 export const HTTP_INTERNAL_SERVER_ERROR = 500;
 export const HTTP_CONFLICT = 409;
+
+export const POKEMON_NAME_MIN_LENGTH = 1;
+export const POKEMON_NAME_MAX_LENGTH = 30;

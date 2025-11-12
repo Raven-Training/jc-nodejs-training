@@ -8,6 +8,9 @@ export const authenticationError = createInternalError(AUTHENTICATION_ERROR, sta
 export const INVALID_TOKEN_ERROR = 'invalid_token_error';
 export const invalidTokenError = createInternalError(INVALID_TOKEN_ERROR, status.FORBIDDEN);
 
+export const AUTHORIZATION_ERROR = 'authorization_error';
+export const authorizationError = createInternalError(AUTHORIZATION_ERROR, status.FORBIDDEN);
+
 export const DATABASE_ERROR = 'database_error';
 export const databaseError = createInternalError(DATABASE_ERROR, status.SERVICE_UNAVAILABLE);
 

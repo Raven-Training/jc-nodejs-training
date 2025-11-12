@@ -5,8 +5,10 @@ import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
 import { generateToken } from '../helpers/jwt.helper';
 import { calculatePaginationMetadata } from '../helpers/pagination.helper';
+import { hashPassword } from '../helpers/password.helper';
 import { LoginResult } from '../types/auth.types';
 import { PaginationParams, PaginatedResponse } from '../types/pagination.types';
+import { UserRole, CreateAdminUserRequest, UserWithRole } from '../types/user.types';
 
 const userRepository = AppDataSource.getRepository(User);
 
@@ -16,6 +18,7 @@ const USER_AUTH_FIELDS: (keyof User)[] = [
   'lastName',
   'email',
   'password',
+  'role',
   'createdAt',
 ];
 
@@ -69,7 +72,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
   if (!isValidUser) {
     console.log(`Login attempt failed for email: ${email}`);
-    return { success: false, message: 'Invalid credentials' };
+    return { success: false, message: 'Invalid credentials', role: UserRole.USER };
   }
 
   console.log(`User ${user.email} logged in successfully`);
@@ -80,5 +83,52 @@ export async function authenticateUser(email: string, password: string): Promise
     token: generateToken({ userId: user.id }),
     user: userWithoutPassword,
     message: 'Login successful',
+    role: user.role,
   };
+}
+
+export async function createAdminUser(
+  adminUserData: CreateAdminUserRequest,
+): Promise<UserWithRole> {
+  const { email, ...userData } = adminUserData;
+
+  const existingUser = await userRepository.findOne({ where: { email } });
+
+  if (existingUser) {
+    console.log(`Updating existing user ${email} to admin role`);
+
+    existingUser.role = UserRole.ADMIN;
+    const updatedUser = await userRepository.save(existingUser);
+
+    console.log(`User ${email} updated to admin successfully`);
+
+    const { password: _password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword as UserWithRole;
+  }
+
+  console.log(`Creating new admin user: ${email}`);
+
+  const hashedPassword = await hashPassword(userData.password);
+
+  const newAdminUser = userRepository.create({
+    ...userData,
+    email,
+    password: hashedPassword,
+    role: UserRole.ADMIN,
+  });
+
+  const savedUser = await userRepository.save(newAdminUser);
+  console.log(`Admin user ${email} created successfully`);
+
+  const { password: _password, ...userWithoutPassword } = savedUser;
+  return userWithoutPassword as UserWithRole;
+}
+
+export async function isUserAdmin(userId: number): Promise<boolean> {
+  const user = await userRepository.findOne({
+    where: { id: userId },
+    select: ['role'],
+  });
+
+  return user?.role === UserRole.ADMIN;
 }

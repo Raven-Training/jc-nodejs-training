@@ -20,11 +20,11 @@ export async function getAllPokemons(
 
     if (!pokemons || pokemons.length === 0) {
       console.warn('Controller - No Pokemons found from service');
-      return res.status(204).send();
+      return res.status(status.NO_CONTENT).send();
     }
 
     console.info('Controller - successfully retrieved and sending Pokemons');
-    return res.status(200).json(pokemons);
+    return res.status(status.OK).json(pokemons);
   } catch (err) {
     console.error('Controller Error - Failed to process request for Pokemons:', err);
     next(err);

@@ -5,6 +5,7 @@ import { AppDataSource } from '../data-source';
 import { PokemonPurchase } from '../entities/PokemonPurchase';
 import { createAxiosInstance } from '../helpers/axios.helper';
 import { createPaginationParams, calculatePaginationMetadata } from '../helpers/pagination.helper';
+import { normalizePokemonName } from '../helpers/pokemon.helper';
 import { mapPokemonPurchaseToResponse } from '../mappers/pokemonPurchase.mapper';
 import { createInternalError } from '../middlewares/error.middleware';
 import {
@@ -24,7 +25,7 @@ const pokemonPurchaseRepository: Repository<PokemonPurchase> =
 
 export async function getPokemonDetails(pokemonName: string): Promise<Pokemon> {
   try {
-    const normalizedName = pokemonName.toLowerCase().trim();
+    const normalizedName = normalizePokemonName(pokemonName);
     const { data } = await createAxiosInstance(config.pokeApi.baseURL).get<Pokemon>(
       `pokemon/${normalizedName}`,
     );
@@ -57,7 +58,7 @@ export async function hasUserPurchasedPokemon(
   pokemonName: string,
 ): Promise<boolean> {
   try {
-    const normalizedName = pokemonName.toLowerCase().trim();
+    const normalizedName = normalizePokemonName(pokemonName);
 
     const existingPurchase = await pokemonPurchaseRepository.findOne({
       where: {
@@ -84,7 +85,7 @@ export async function purchasePokemon(
   pokemonName: string,
 ): Promise<PokemonPurchaseResponse> {
   try {
-    const normalizedName = pokemonName.toLowerCase().trim();
+    const normalizedName = normalizePokemonName(pokemonName);
 
     const pokemonData = await getPokemonDetails(normalizedName);
 

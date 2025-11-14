@@ -23,3 +23,4 @@ export const DEFAULT_LIMIT = 10;
 export const FIRST_PAGE = 1;
 export const MINIMUM_PAGE = 1;
 export const MINIMUM_LIMIT = 1;
+export const MAXIMUM_LIMIT = 100;

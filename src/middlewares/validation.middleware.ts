@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult, body, ValidationChain } from 'express-validator';
+import { validationResult, body, ValidationChain, query } from 'express-validator';
 
 import { findUser } from '../services/users';
+import { POKEMON_NAME_MIN_LENGTH, POKEMON_NAME_MAX_LENGTH } from '../types/cards.types';
+import { MINIMUM_PAGE, MINIMUM_LIMIT, MAXIMUM_LIMIT } from '../types/pagination.types';
 
 export const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -57,3 +59,33 @@ export const validateLogin = validate([
   body('email').isEmail().withMessage('Invalid email format'),
   body('password').notEmpty().withMessage('Password is required'),
 ]);
+
+const pokemonPurchaseRules = [
+  body('pokemonName')
+    .notEmpty()
+    .withMessage('Pokemon name is required')
+    .isLength({ min: POKEMON_NAME_MIN_LENGTH, max: POKEMON_NAME_MAX_LENGTH })
+    .withMessage(
+      `Pokemon name must be between ${POKEMON_NAME_MIN_LENGTH} and ${POKEMON_NAME_MAX_LENGTH} characters`,
+    )
+    .matches(/^[a-zA-Z0-9\-]+$/)
+    .withMessage('Pokemon name can only contain letters, numbers, and hyphens')
+    .toLowerCase(),
+];
+
+export const validatePokemonPurchase = validate(pokemonPurchaseRules);
+
+const pokemonCollectionRules = [
+  query('page')
+    .optional()
+    .isInt({ min: MINIMUM_PAGE })
+    .withMessage(`Page must be at least ${MINIMUM_PAGE}`)
+    .toInt(),
+  query('limit')
+    .optional()
+    .isInt({ min: MINIMUM_LIMIT, max: MAXIMUM_LIMIT })
+    .withMessage(`Limit must be between ${MINIMUM_LIMIT} and ${MAXIMUM_LIMIT}`)
+    .toInt(),
+];
+
+export const validatePokemonCollection = validate(pokemonCollectionRules);

@@ -80,7 +80,7 @@ export function getUserById(
       if (!user) {
         throw notFoundError('User not found');
       }
-      return res.send(user);
+      return res.status(status.OK).json(user);
     })
     .catch(next);
 }

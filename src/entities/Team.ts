@@ -7,6 +7,7 @@ import {
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -14,6 +15,7 @@ import { PokemonPurchase } from './PokemonPurchase';
 import { User } from './User';
 
 @Entity('teams')
+@Unique(['user', 'teamType'])
 export class Team {
   @PrimaryGeneratedColumn()
   id!: number;

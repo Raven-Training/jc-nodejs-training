@@ -37,14 +37,7 @@ export async function purchasePokemon(
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      console.warn('Controller - Purchase attempt without authenticated user');
-      return res.status(status.UNAUTHORIZED).json({
-        message: 'Authentication required to purchase Pokemon',
-      });
-    }
-
+    const userId = req.user!.userId;
     const { pokemonName } = req.body;
 
     console.info(`Controller - Processing Pokemon purchase: ${pokemonName} for user ${userId}`);
@@ -69,14 +62,7 @@ export async function getPokemonCollection(
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      console.warn('Controller - Collection request without authenticated user');
-      return res.status(status.UNAUTHORIZED).json({
-        message: 'Authentication required to view Pokemon collection',
-      });
-    }
-
+    const userId = req.user!.userId;
     const page = getValidPage(req.query.page as string);
     const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
 

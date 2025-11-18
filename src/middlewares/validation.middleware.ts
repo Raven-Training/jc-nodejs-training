@@ -4,6 +4,7 @@ import { validationResult, body, ValidationChain, query } from 'express-validato
 import { findUser } from '../services/users';
 import { POKEMON_NAME_MIN_LENGTH, POKEMON_NAME_MAX_LENGTH } from '../types/cards.types';
 import { MINIMUM_PAGE, MINIMUM_LIMIT, MAXIMUM_LIMIT } from '../types/pagination.types';
+import { PokemonType, TEAM_NAME_MIN_LENGTH, TEAM_NAME_MAX_LENGTH } from '../types/teams.types';
 
 export const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -89,3 +90,22 @@ const pokemonCollectionRules = [
 ];
 
 export const validatePokemonCollection = validate(pokemonCollectionRules);
+
+const teamCreationRules = [
+  body('name')
+    .notEmpty()
+    .withMessage('Team name is required')
+    .isLength({ min: TEAM_NAME_MIN_LENGTH, max: TEAM_NAME_MAX_LENGTH })
+    .withMessage(
+      `Team name must be between ${TEAM_NAME_MIN_LENGTH} and ${TEAM_NAME_MAX_LENGTH} characters`,
+    )
+    .matches(/^[a-zA-Z0-9\s\-]+$/)
+    .withMessage('Team name can only contain letters, numbers, spaces, and hyphens'),
+  body('teamType')
+    .notEmpty()
+    .withMessage('Team type is required')
+    .isIn(Object.values(PokemonType))
+    .withMessage('Invalid team type'),
+];
+
+export const validateTeamCreation = validate(teamCreationRules);

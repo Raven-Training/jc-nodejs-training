@@ -14,7 +14,7 @@ export async function createAdminUser(
     const adminUser = await userService.createAdminUser(adminUserData);
 
     console.log(
-      `Admin user ${adminUser.email} created/updated successfully by admin ${req.user?.userId}`,
+      `Admin user ${adminUser.email} created/updated successfully by admin ${req.user!.userId}`,
     );
 
     return res.status(status.CREATED).json({
@@ -22,7 +22,7 @@ export async function createAdminUser(
       message: 'Admin user created successfully',
     });
   } catch (err) {
-    console.error(`Database error while creating admin user by admin ${req.user?.userId}:`, err);
+    console.error(`Database error while creating admin user by admin ${req.user!.userId}:`, err);
     next(err);
   }
 }

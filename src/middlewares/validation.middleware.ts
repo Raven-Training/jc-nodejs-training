@@ -1,10 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult, body, ValidationChain, query } from 'express-validator';
+import { validationResult, body, ValidationChain, query, param } from 'express-validator';
 
 import { findUser } from '../services/users';
 import { POKEMON_NAME_MIN_LENGTH, POKEMON_NAME_MAX_LENGTH } from '../types/cards.types';
 import { MINIMUM_PAGE, MINIMUM_LIMIT, MAXIMUM_LIMIT } from '../types/pagination.types';
-import { PokemonType, TEAM_NAME_MIN_LENGTH, TEAM_NAME_MAX_LENGTH } from '../types/teams.types';
+import {
+  PokemonType,
+  TEAM_NAME_MIN_LENGTH,
+  TEAM_NAME_MAX_LENGTH,
+  MAX_POKEMONS_PER_REQUEST,
+  MIN_POKEMONS_PER_REQUEST,
+} from '../types/teams.types';
 
 export const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
@@ -109,3 +115,19 @@ const teamCreationRules = [
 ];
 
 export const validateTeamCreation = validate(teamCreationRules);
+
+const addPokemonToTeamRules = [
+  param('teamId')
+    .notEmpty()
+    .withMessage('Team ID is required')
+    .isInt({ min: 1 })
+    .withMessage('Team ID must be a positive integer'),
+  body('pokemonIds')
+    .isArray({ min: MIN_POKEMONS_PER_REQUEST, max: MAX_POKEMONS_PER_REQUEST })
+    .withMessage(
+      `pokemonIds must be an array with ${MIN_POKEMONS_PER_REQUEST} to ${MAX_POKEMONS_PER_REQUEST} items`,
+    ),
+  body('pokemonIds.*').isInt({ min: 1 }).withMessage('Each Pokemon ID must be a positive integer'),
+];
+
+export const validateAddPokemonToTeam = validate(addPokemonToTeamRules);

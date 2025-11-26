@@ -5,18 +5,14 @@ import { PokemonPurchase } from '../entities/PokemonPurchase';
 import { getRandomPokemonByRarity } from '../helpers/pokemonRarity.helper';
 import { mapPokemonPurchaseToResponse } from '../mappers/pokemonPurchase.mapper';
 import { createInternalError } from '../middlewares/error.middleware';
-import {
-  MYSTERY_BOX_PRICE,
-  IMysteryBoxPurchaseResponse,
-} from '../types/mysteryBox.types';
+import { MYSTERY_BOX_PRICE, IMysteryBoxPurchaseResponse } from '../types/mysteryBox.types';
+
 import { calculatePokemonPrice } from './pokemonPurchase';
 
 const pokemonPurchaseRepository: Repository<PokemonPurchase> =
   AppDataSource.getRepository(PokemonPurchase);
 
-export async function purchaseMysteryBox(
-  userId: number,
-): Promise<IMysteryBoxPurchaseResponse> {
+export async function purchaseMysteryBox(userId: number): Promise<IMysteryBoxPurchaseResponse> {
   try {
     console.info(`Mystery Box - User ${userId} initiating mystery box purchase`);
 

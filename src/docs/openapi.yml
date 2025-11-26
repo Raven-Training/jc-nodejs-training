@@ -15,6 +15,8 @@ tags:
     description: Health check operations
   - name: Pokemon
     description: Pokemon purchase and collection operations
+  - name: Mystery Box
+    description: Mystery Box operations for random Pokemon
 
 paths:
   /users:
@@ -114,6 +116,21 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /mystery-box:
+    post:
+      tags: [Mystery Box]
+      summary: Purchase a Mystery Box
+      description: Purchase a Mystery Box for a fixed price and receive a random Pokemon with variable rarity (Common, Uncommon, Rare, Epic, Legendary). The Pokemon's actual value is determined by its weight, height, and types.
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          $ref: '#/components/responses/MysteryBoxPurchased'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/MysteryBoxError'
+
 components:
   schemas:
     UserRequest:
@@ -173,6 +190,34 @@ components:
         pokemonTypes: { type: array, items: { type: string }, example: ['electric'] }
         price: { type: number, example: 75 }
         purchasedAt: { type: string, format: date-time, example: '2025-11-07T10:30:00.000Z' }
+
+    MysteryBoxPurchaseResponse:
+      type: object
+      properties:
+        id: { type: integer, example: 10 }
+        pokemonId: { type: integer, example: 6 }
+        pokemonName: { type: string, example: 'charizard' }
+        pokemonImage:
+          {
+            type: string,
+            format: uri,
+            example: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png',
+          }
+        pokemonTypes: { type: array, items: { type: string }, example: ['fire', 'flying'] }
+        rarity:
+          {
+            type: string,
+            enum: [common, uncommon, rare, epic, legendary],
+            example: 'legendary',
+            description: 'Pokemon rarity based on weight',
+          }
+        price:
+          {
+            type: number,
+            example: 456,
+            description: 'Actual value of the Pokemon (calculated from weight, height, types)',
+          }
+        purchasedAt: { type: string, format: date-time, example: '2025-11-26T15:30:00.000Z' }
 
     PaginationMetadata:
       type: object
@@ -298,6 +343,46 @@ components:
             type: object
             properties:
               message: { type: string, example: 'Failed to fetch data from PokeAPI' }
+
+    MysteryBoxPurchased:
+      description: Mystery Box successfully purchased, random Pokemon obtained
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                {
+                  type: string,
+                  example: 'Congratulations! You got a legendary Pokemon!',
+                  description: 'Success message indicating the rarity of the Pokemon obtained',
+                }
+              data: { $ref: '#/components/schemas/MysteryBoxPurchaseResponse' }
+          example:
+            message: 'Congratulations! You got a legendary Pokemon!'
+            data:
+              id: 10
+              pokemonId: 6
+              pokemonName: 'charizard'
+              pokemonImage: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png'
+              pokemonTypes: ['fire', 'flying']
+              rarity: 'legendary'
+              price: 456
+              purchasedAt: '2025-11-26T15:30:00.000Z'
+
+    MysteryBoxError:
+      description: Error during Mystery Box purchase
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                {
+                  type: string,
+                  example: 'Failed to complete mystery box purchase',
+                  description: 'Error message indicating what went wrong',
+                }
 
   securitySchemes:
     BearerAuth:

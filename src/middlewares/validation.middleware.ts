@@ -131,3 +131,5 @@ const addPokemonToTeamRules = [
 ];
 
 export const validateAddPokemonToTeam = validate(addPokemonToTeamRules);
+
+export const validateMysteryBoxPurchase = validate([]);

@@ -3,6 +3,7 @@ import { Application } from 'express';
 import { createAdminUser } from './controllers/admin';
 import { getAllPokemons, purchasePokemon, getPokemonCollection } from './controllers/cards';
 import { healthCheck } from './controllers/healthCheck';
+import { purchaseMysteryBox } from './controllers/mysteryBox';
 import { createTeam, addPokemonToTeam } from './controllers/teams';
 import { getTodos } from './controllers/todos';
 import { getUsers, getUserById, createUser, loginUser } from './controllers/users';
@@ -16,6 +17,7 @@ import {
   validatePokemonCollection,
   validateTeamCreation,
   validateAddPokemonToTeam,
+  validateMysteryBoxPurchase,
 } from './middlewares/validation.middleware';
 
 export const init = (app: Application): void => {
@@ -32,6 +34,8 @@ export const init = (app: Application): void => {
   // Pokemon
   app.post('/cards/purchase', authenticateToken, validatePokemonPurchase, purchasePokemon);
   app.get('/cards/collection', authenticateToken, validatePokemonCollection, getPokemonCollection);
+  // Mystery Box
+  app.post('/mystery-box', authenticateToken, validateMysteryBoxPurchase, purchaseMysteryBox);
   // Team
   app.post('/teams', authenticateToken, validateTeamCreation, createTeam);
   app.post(

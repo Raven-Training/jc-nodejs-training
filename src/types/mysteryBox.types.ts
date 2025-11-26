@@ -66,5 +66,3 @@ export const WEIGHT_TO_RARITY_MAP: readonly IPokemonRarity[] = [
     weightRange: { min: 1001, max: 10000 },
   },
 ];
-
-export const HTTP_MYSTERY_BOX_SUCCESS = 201;

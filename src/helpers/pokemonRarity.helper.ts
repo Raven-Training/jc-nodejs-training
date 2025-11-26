@@ -119,7 +119,10 @@ function selectRandomFromCommonBucket(): { pokemon: Pokemon; rarity: RarityLevel
 
   const commonBucket = rarityBucketsCache.get(RarityLevel.COMMON) || [];
   if (commonBucket.length === 0) {
-    throw createInternalError('NO_POKEMON_AVAILABLE', 500)('No pokemons available in any rarity tier');
+    throw createInternalError(
+      'NO_POKEMON_AVAILABLE',
+      500,
+    )('No pokemons available in any rarity tier');
   }
 
   const randomIndex = Math.floor(Math.random() * commonBucket.length);

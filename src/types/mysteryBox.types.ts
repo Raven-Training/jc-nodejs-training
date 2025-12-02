@@ -31,6 +31,10 @@ export interface IMysteryBoxPurchaseResponse {
 
 export const MYSTERY_BOX_PRICE = 100;
 
+export const MIN_POKEMON_LIMIT = 1;
+export const DEFAULT_POKEMON_LIMIT = 150;
+export const MAX_POKEMON_LIMIT = 1000;
+
 export const RARITY_PROBABILITIES: Record<RarityLevel, number> = {
   [RarityLevel.COMMON]: 0.5,
   [RarityLevel.UNCOMMON]: 0.25,

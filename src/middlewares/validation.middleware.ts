@@ -3,6 +3,7 @@ import { validationResult, body, ValidationChain, query, param } from 'express-v
 
 import { findUser } from '../services/users';
 import { POKEMON_NAME_MIN_LENGTH, POKEMON_NAME_MAX_LENGTH } from '../types/cards.types';
+import { MIN_POKEMON_LIMIT, MAX_POKEMON_LIMIT } from '../types/mysteryBox.types';
 import { MINIMUM_PAGE, MINIMUM_LIMIT, MAXIMUM_LIMIT } from '../types/pagination.types';
 import {
   PokemonType,
@@ -132,4 +133,13 @@ const addPokemonToTeamRules = [
 
 export const validateAddPokemonToTeam = validate(addPokemonToTeamRules);
 
-export const validateMysteryBoxPurchase = validate([]);
+const mysteryBoxPurchaseRules = [
+  query('limit')
+    .optional()
+    .isInt({ min: MIN_POKEMON_LIMIT, max: MAX_POKEMON_LIMIT })
+    .withMessage(
+      `Limit must be a positive integer between ${MIN_POKEMON_LIMIT} and ${MAX_POKEMON_LIMIT}`,
+    ),
+];
+
+export const validateMysteryBoxPurchase = validate(mysteryBoxPurchaseRules);

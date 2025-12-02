@@ -10,14 +10,15 @@ export async function purchaseMysteryBox(
 ): Promise<Response | void> {
   try {
     const userId = req.user!.userId;
-
-    console.info(`Controller - Processing mystery box purchase for user ${userId}`);
-
-    const result = await purchaseMysteryBoxService(userId);
+    const limit = parseInt(req.query.limit as string) || undefined;
 
     console.info(
-      `Controller - Mystery box purchase successful: ${result.data.pokemonName} (${result.data.rarity}) for user ${userId}`,
+      `Controller - Processing mystery box purchase for user ${userId}${limit ? ` with limit ${limit}` : ''}`,
     );
+
+    const result = await purchaseMysteryBoxService(userId, limit);
+
+    console.info(`Controller - Mystery box purchase successful for user ${userId}`);
 
     return res.status(status.CREATED).json(result);
   } catch (err) {

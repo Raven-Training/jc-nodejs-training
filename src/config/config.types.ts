@@ -19,6 +19,10 @@ export interface ApiBaseConfig {
   baseURL: ENV_VAR;
 }
 
+export interface PokeApiConfig extends ApiBaseConfig {
+  pokemonLimit: number;
+}
+
 export interface JwtConfig {
   secret: string;
   expiresIn: string;
@@ -32,5 +36,5 @@ export interface Config {
   };
   jwt: JwtConfig;
   todosApi: ApiBaseConfig;
-  pokeApi: ApiBaseConfig;
+  pokeApi: PokeApiConfig;
 }

@@ -12,11 +12,16 @@ import { calculatePokemonPrice } from './pokemonPurchase';
 const pokemonPurchaseRepository: Repository<PokemonPurchase> =
   AppDataSource.getRepository(PokemonPurchase);
 
-export async function purchaseMysteryBox(userId: number): Promise<IMysteryBoxPurchaseResponse> {
+export async function purchaseMysteryBox(
+  userId: number,
+  limit?: number,
+): Promise<IMysteryBoxPurchaseResponse> {
   try {
-    console.info(`Mystery Box - User ${userId} initiating mystery box purchase`);
+    console.info(
+      `Mystery Box - User ${userId} initiating mystery box purchase${limit ? ` with limit ${limit}` : ''}`,
+    );
 
-    const { pokemon, rarity } = await getRandomPokemonByRarity();
+    const { pokemon, rarity } = await getRandomPokemonByRarity(limit);
 
     const pokemonTypes = pokemon.types.map((typeObj) => typeObj.type.name);
     const pokemonPrice = calculatePokemonPrice(pokemon);

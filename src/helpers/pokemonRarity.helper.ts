@@ -64,12 +64,14 @@ function categorizePokemonsByRarity(pokemons: Pokemon[]): Map<RarityLevel, Pokem
   return rarityBuckets;
 }
 
-async function fetchPokemonsFromAPI(): Promise<Pokemon[]> {
-  console.info('PokeAPI - Cache miss, fetching pokemons from API');
+async function fetchPokemonsFromAPI(
+  limit: number = config.pokeApi.pokemonLimit,
+): Promise<Pokemon[]> {
+  console.info(`PokeAPI - Cache miss, fetching ${limit} pokemons from API`);
 
   const { data } = await createAxiosInstance(config.pokeApi.baseURL).get<{
     results: { name: string; url: string }[];
-  }>('pokemon?limit=150');
+  }>(`pokemon?limit=${limit}`);
 
   console.info(`PokeAPI - Retrieved ${data.results.length} available pokemons`);
 
@@ -86,7 +88,9 @@ async function fetchPokemonsFromAPI(): Promise<Pokemon[]> {
   return allPokemons;
 }
 
-async function getAllAvailablePokemons(): Promise<Pokemon[]> {
+async function getAllAvailablePokemons(
+  limit: number = config.pokeApi.pokemonLimit,
+): Promise<Pokemon[]> {
   try {
     if (isCacheValid() && pokemonCache && rarityBucketsCache) {
       console.info(
@@ -95,7 +99,7 @@ async function getAllAvailablePokemons(): Promise<Pokemon[]> {
       return pokemonCache;
     }
 
-    const allPokemons = await fetchPokemonsFromAPI();
+    const allPokemons = await fetchPokemonsFromAPI(limit);
 
     pokemonCache = allPokemons;
     rarityBucketsCache = categorizePokemonsByRarity(allPokemons);
@@ -118,7 +122,7 @@ function selectRandomFromCommonBucket(): { pokemon: Pokemon; rarity: RarityLevel
   }
 
   const commonBucket = rarityBucketsCache.get(RarityLevel.COMMON) || [];
-  if (commonBucket.length === 0) {
+  if (!commonBucket.length) {
     throw createInternalError(
       'NO_POKEMON_AVAILABLE',
       500,
@@ -145,7 +149,7 @@ function selectPokemonByWeightedRandom(): { pokemon: Pokemon; rarity: RarityLeve
     if (random <= cumulativeProbability) {
       const bucket = rarityBucketsCache.get(rarity as RarityLevel) || [];
 
-      if (bucket.length === 0) {
+      if (!bucket.length) {
         console.warn(`No pokemons available for rarity ${rarity}, selecting from common`);
         const result = selectRandomFromCommonBucket();
         console.info(
@@ -172,14 +176,16 @@ function selectPokemonByWeightedRandom(): { pokemon: Pokemon; rarity: RarityLeve
   return result;
 }
 
-export async function getRandomPokemonByRarity(): Promise<{
+export async function getRandomPokemonByRarity(
+  limit: number = config.pokeApi.pokemonLimit,
+): Promise<{
   pokemon: Pokemon;
   rarity: RarityLevel;
 }> {
   try {
-    console.info('Mystery Box - Starting random pokemon selection process');
+    console.info(`Mystery Box - Starting random pokemon selection process (limit: ${limit})`);
 
-    await getAllAvailablePokemons();
+    await getAllAvailablePokemons(limit);
 
     if (!rarityBucketsCache) {
       throw createInternalError(

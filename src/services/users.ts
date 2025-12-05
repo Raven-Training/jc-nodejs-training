@@ -144,12 +144,9 @@ export async function invalidateAllUserSessions(userId: number): Promise<void> {
     throw new Error(`User with id ${userId} not found`);
   }
 
-  const previousVersion = user.tokenVersion;
   user.tokenVersion += 1;
 
   await userRepository.save(user);
 
-  console.log(
-    `All sessions invalidated for user ${userId}. Token version: ${previousVersion} → ${user.tokenVersion}`,
-  );
+  console.log(`All sessions invalidated successfully for user ${userId}`);
 }

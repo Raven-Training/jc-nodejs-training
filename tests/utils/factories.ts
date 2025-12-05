@@ -46,6 +46,7 @@ export const generateUser = (overrides: Partial<User> = {}): User => {
     ...person,
     password: randomString(10),
     role: UserRole.USER,
+    tokenVersion: 0,
     createdAt: new Date(),
     ...overrides,
   };

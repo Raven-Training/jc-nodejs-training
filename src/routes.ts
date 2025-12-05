@@ -6,7 +6,13 @@ import { healthCheck } from './controllers/healthCheck';
 import { purchaseMysteryBox } from './controllers/mysteryBox';
 import { createTeam, addPokemonToTeam } from './controllers/teams';
 import { getTodos } from './controllers/todos';
-import { getUsers, getUserById, createUser, loginUser } from './controllers/users';
+import {
+  getUsers,
+  getUserById,
+  createUser,
+  loginUser,
+  invalidateAllSessions,
+} from './controllers/users';
 import { authenticateToken } from './middlewares/auth.middleware';
 import { requireAdmin } from './middlewares/authorization.middleware';
 import {
@@ -31,6 +37,7 @@ export const init = (app: Application): void => {
   // Protected routes
   app.get('/users', authenticateToken, getUsers);
   app.get('/users/:id', authenticateToken, getUserById);
+  app.post('/users/sessions/invalidate_all', authenticateToken, invalidateAllSessions);
   // Pokemon
   app.post('/cards/purchase', authenticateToken, validatePokemonPurchase, purchasePokemon);
   app.get('/cards/collection', authenticateToken, validatePokemonCollection, getPokemonCollection);

@@ -19,6 +19,7 @@ export const generateExpectedUserResponse = (overrides = {}) => ({
   lastName: 'Doe',
   email: 'john@test.com',
   role: UserRole.USER,
+  tokenVersion: 0,
   createdAt: expect.any(Date),
   ...overrides,
 });
@@ -39,6 +40,7 @@ export const generateSuccessfulLoginResponse = (
     lastName: 'Doe',
     email: 'john@example.com',
     role: UserRole.USER,
+    tokenVersion: 0,
     createdAt: new Date(),
   },
   message = 'Login successful',

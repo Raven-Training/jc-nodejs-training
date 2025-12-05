@@ -22,7 +22,7 @@ describe('Admin Controller', () => {
     beforeEach(() => {
       jest.clearAllMocks();
 
-      adminToken = generateToken({ userId: 1 });
+      adminToken = generateToken({ userId: 1, tokenVersion: 0 });
     });
 
     it('should create admin user with valid data and admin authentication', async () => {
@@ -64,7 +64,7 @@ describe('Admin Controller', () => {
     });
 
     it('should return 403 when user is not admin', async () => {
-      const regularUserToken = generateToken({ userId: 2 });
+      const regularUserToken = generateToken({ userId: 2, tokenVersion: 0 });
 
       (userService.isUserAdmin as jest.Mock).mockResolvedValue(false);
 

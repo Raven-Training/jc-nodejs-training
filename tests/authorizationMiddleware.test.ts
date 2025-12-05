@@ -16,7 +16,7 @@ describe('Authorization Middleware', () => {
     jest.clearAllMocks();
 
     mockReq = {
-      user: { userId: 123 },
+      user: { userId: 123, tokenVersion: 0 },
     };
     mockRes = {};
     mockNext = jest.fn();

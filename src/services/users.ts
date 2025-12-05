@@ -149,7 +149,5 @@ export async function invalidateAllUserSessions(userId: number): Promise<void> {
 
   await userRepository.save(user);
 
-  console.log(
-    `All sessions invalidated for user ${userId}. Token version: ${previousVersion} → ${user.tokenVersion}`,
-  );
+  console.log(`All sessions invalidated successfully for user ${userId}`);
 }

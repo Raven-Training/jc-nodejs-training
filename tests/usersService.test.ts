@@ -147,7 +147,16 @@ describe('User Service (mock typeorm)', () => {
 
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
         where: { email },
-        select: ['id', 'name', 'lastName', 'email', 'password', 'role', 'createdAt'],
+        select: [
+          'id',
+          'name',
+          'lastName',
+          'email',
+          'password',
+          'role',
+          'tokenVersion',
+          'createdAt',
+        ],
       });
       expect(bcrypt.compare).toHaveBeenCalledWith(password, hashedPassword);
       expect(result).toEqual(generateExpectedLoginResult());
@@ -160,7 +169,16 @@ describe('User Service (mock typeorm)', () => {
 
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
         where: { email },
-        select: ['id', 'name', 'lastName', 'email', 'password', 'role', 'createdAt'],
+        select: [
+          'id',
+          'name',
+          'lastName',
+          'email',
+          'password',
+          'role',
+          'tokenVersion',
+          'createdAt',
+        ],
       });
       expect(result).toEqual(generateExpectedFailureResult());
     });
@@ -176,7 +194,16 @@ describe('User Service (mock typeorm)', () => {
 
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
         where: { email },
-        select: ['id', 'name', 'lastName', 'email', 'password', 'role', 'createdAt'],
+        select: [
+          'id',
+          'name',
+          'lastName',
+          'email',
+          'password',
+          'role',
+          'tokenVersion',
+          'createdAt',
+        ],
       });
       expect(bcrypt.compare).toHaveBeenCalledWith(password, hashedPassword);
       expect(result).toEqual(generateExpectedFailureResult());
@@ -192,7 +219,16 @@ describe('User Service (mock typeorm)', () => {
 
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
         where: { email },
-        select: ['id', 'name', 'lastName', 'email', 'password', 'role', 'createdAt'],
+        select: [
+          'id',
+          'name',
+          'lastName',
+          'email',
+          'password',
+          'role',
+          'tokenVersion',
+          'createdAt',
+        ],
       });
     });
 
@@ -210,7 +246,16 @@ describe('User Service (mock typeorm)', () => {
 
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
         where: { email },
-        select: ['id', 'name', 'lastName', 'email', 'password', 'role', 'createdAt'],
+        select: [
+          'id',
+          'name',
+          'lastName',
+          'email',
+          'password',
+          'role',
+          'tokenVersion',
+          'createdAt',
+        ],
       });
       expect(bcrypt.compare).toHaveBeenCalledWith(password, hashedPassword);
     });
@@ -269,6 +314,7 @@ describe('User Service (mock typeorm)', () => {
           lastName: expectedAdminUser.lastName,
           email: expectedAdminUser.email,
           role: expectedAdminUser.role,
+          tokenVersion: expectedAdminUser.tokenVersion,
           createdAt: expectedAdminUser.createdAt,
         });
         expect(result).not.toHaveProperty('password');
@@ -298,6 +344,7 @@ describe('User Service (mock typeorm)', () => {
           lastName: updatedAdminUser.lastName,
           email: updatedAdminUser.email,
           role: updatedAdminUser.role,
+          tokenVersion: updatedAdminUser.tokenVersion,
           createdAt: updatedAdminUser.createdAt,
         });
         expect(result).not.toHaveProperty('password');
@@ -405,6 +452,75 @@ describe('User Service (mock typeorm)', () => {
         expect(mockUserRepository.findOne).toHaveBeenCalledWith({
           where: { id: userId },
           select: ['role'],
+        });
+      });
+    });
+
+    describe('invalidateAllUserSessions', () => {
+      it('should increment tokenVersion and invalidate all sessions', async () => {
+        const userId = 1;
+        const mockUser = generateUser({ id: userId, tokenVersion: 0 });
+
+        mockUserRepository.findOne.mockResolvedValue(mockUser);
+        mockUserRepository.save.mockResolvedValue({ ...mockUser, tokenVersion: 1 });
+
+        await userService.invalidateAllUserSessions(userId);
+
+        expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+          where: { id: userId },
+          select: ['id', 'tokenVersion'],
+        });
+        expect(mockUserRepository.save).toHaveBeenCalledWith({
+          ...mockUser,
+          tokenVersion: 1,
+        });
+      });
+
+      it('should throw error when user does not exist', async () => {
+        const userId = 999;
+        mockUserRepository.findOne.mockResolvedValue(null);
+
+        await expect(userService.invalidateAllUserSessions(userId)).rejects.toThrow(
+          `User with id ${userId} not found`,
+        );
+
+        expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+          where: { id: userId },
+          select: ['id', 'tokenVersion'],
+        });
+        expect(mockUserRepository.save).not.toHaveBeenCalled();
+      });
+
+      it('should handle multiple increments correctly', async () => {
+        const userId = 1;
+        const mockUser = generateUser({ id: userId, tokenVersion: 5 });
+
+        mockUserRepository.findOne.mockResolvedValue(mockUser);
+        mockUserRepository.save.mockResolvedValue({ ...mockUser, tokenVersion: 6 });
+
+        await userService.invalidateAllUserSessions(userId);
+
+        expect(mockUserRepository.save).toHaveBeenCalledWith({
+          ...mockUser,
+          tokenVersion: 6,
+        });
+      });
+
+      it('should handle database errors during invalidation', async () => {
+        const userId = 1;
+        const mockUser = generateUser({ id: userId, tokenVersion: 0 });
+        const databaseError = generateDatabaseError();
+
+        mockUserRepository.findOne.mockResolvedValue(mockUser);
+        mockUserRepository.save.mockRejectedValue(databaseError);
+
+        await expect(userService.invalidateAllUserSessions(userId)).rejects.toThrow(
+          'Database connection failed',
+        );
+
+        expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+          where: { id: userId },
+          select: ['id', 'tokenVersion'],
         });
       });
     });

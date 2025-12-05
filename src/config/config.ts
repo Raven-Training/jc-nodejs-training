@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 
+import { DEFAULT_POKEMON_LIMIT } from '../types/mysteryBox.types';
+
 import { Config } from './config.types';
 
 dotenv.config();
@@ -28,6 +30,7 @@ const config: Config = {
   },
   pokeApi: {
     baseURL: process.env.POKEAPI_BASE_URL || 'https://pokeapi.co/api/v2/',
+    pokemonLimit: Number(process.env.POKEAPI_POKEMON_LIMIT) || DEFAULT_POKEMON_LIMIT,
   },
 };
 

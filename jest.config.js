@@ -8,6 +8,7 @@ module.exports = {
   verbose: true,
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   testPathIgnorePatterns: ['<rootDir>/dist/'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   transform: {
     ...tsJestTransformCfg,
   },

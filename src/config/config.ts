@@ -25,6 +25,16 @@ const config: Config = {
     secret: process.env.JWT_SECRET || 'default-secret-key',
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
   },
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: Number(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: process.env.EMAIL_USER || '',
+      pass: process.env.EMAIL_PASSWORD || '',
+    },
+    from: process.env.EMAIL_FROM || 'noreply@example.com',
+  },
   todosApi: {
     baseURL: process.env.TODOS_API_BASE_URL || 'https://jsonplaceholder.typicode.com',
   },

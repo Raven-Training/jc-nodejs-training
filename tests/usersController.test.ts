@@ -6,6 +6,7 @@ import { User } from '../src/entities/User';
 import { generateToken } from '../src/helpers/jwt.helper';
 import { UserRole } from '../src/types/user.types';
 import * as userService from '../src/services/users';
+import { emailService } from '../src/services/email';
 import { generateUser, generateUserInput, generateInvalidPassword } from './utils/factories';
 import {
   generatePaginatedResponse,
@@ -17,6 +18,7 @@ import {
 } from './utils/testGenerators';
 
 jest.mock('../src/services/users');
+jest.mock('../src/services/email');
 
 describe('Users Controller', () => {
   beforeEach(() => {
@@ -97,6 +99,10 @@ describe('Users Controller', () => {
   });
 
   describe('POST /users (Registration)', () => {
+    beforeEach(() => {
+      (emailService.sendWelcomeEmail as jest.Mock).mockResolvedValue(undefined);
+    });
+
     it('should create and return a user when POST /users is called with valid data', async () => {
       const newUser = generateUserInput();
       const createdUser = generateUser({
@@ -125,6 +131,56 @@ describe('Users Controller', () => {
       expect(userService.registerUser).toHaveBeenCalledWith({
         ...newUser,
         password: expect.any(String),
+      });
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
+        createdUser.email,
+        createdUser.name,
+      );
+    });
+
+    it('should send welcome email after successful registration', async () => {
+      const newUser = generateUserInput();
+      const createdUser = generateUser({
+        name: newUser.name,
+        lastName: newUser.lastName,
+        email: newUser.email,
+      });
+
+      jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
+
+      await request(app).post('/users').send(newUser);
+
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
+        createdUser.email,
+        createdUser.name,
+      );
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it('should complete registration even if email sending fails', async () => {
+      const newUser = generateUserInput();
+      const createdUser = generateUser({
+        name: newUser.name,
+        lastName: newUser.lastName,
+        email: newUser.email,
+      });
+
+      jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
+      (emailService.sendWelcomeEmail as jest.Mock).mockRejectedValue(
+        new Error('SMTP connection failed'),
+      );
+
+      const res = await request(app).post('/users').send(newUser);
+
+      expect(res.status).toBe(201);
+      expect(res.body.user).toEqual({
+        id: createdUser.id,
+        name: createdUser.name,
+        lastName: createdUser.lastName,
+        email: createdUser.email,
+        role: createdUser.role,
+        tokenVersion: createdUser.tokenVersion,
+        createdAt: createdUser.createdAt.toISOString(),
       });
     });
 

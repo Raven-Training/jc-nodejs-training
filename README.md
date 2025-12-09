@@ -43,6 +43,14 @@ cp .env.example .env
 - `DB_USERNAME` Database user
 - `DB_PASSWORD` Database password
 - `DB_NAME` Database name
+- `JWT_SECRET` Secret key for JWT token generation
+- `JWT_EXPIRES_IN` JWT token expiration time (default: `24h`)
+- `EMAIL_HOST` SMTP server host (default: `smtp.gmail.com`)
+- `EMAIL_PORT` SMTP server port (default: `587`)
+- `EMAIL_SECURE` Use TLS/SSL for email (default: `false`)
+- `EMAIL_USER` Email account username for sending
+- `EMAIL_PASSWORD` Email account password
+- `EMAIL_FROM` Sender email address (default: `noreply@example.com`)
 - `TODOS_API_BASE_URL` Base URL for external Todos API (default: `https://jsonplaceholder.typicode.com`)
 
 Variables are consumed from `src/config/config.ts` using `process.env`.

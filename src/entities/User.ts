@@ -27,6 +27,9 @@ export class User {
   })
   role!: UserRole;
 
+  @Column({ name: 'token_version', default: 0 })
+  tokenVersion!: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }

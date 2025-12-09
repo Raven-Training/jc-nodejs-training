@@ -28,6 +28,17 @@ export interface JwtConfig {
   expiresIn: string;
 }
 
+export interface EmailConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  auth: {
+    user: string;
+    pass: string;
+  };
+  from: string;
+}
+
 export interface Config {
   nodeEnv: string;
   api: ApiConfig;
@@ -35,6 +46,7 @@ export interface Config {
     db: DatabaseConfig;
   };
   jwt: JwtConfig;
+  email: EmailConfig;
   todosApi: ApiBaseConfig;
   pokeApi: PokeApiConfig;
 }

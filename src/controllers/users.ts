@@ -6,6 +6,7 @@ import { notFoundError } from '../errors';
 import { createPaginationParams, getValidPage } from '../helpers/pagination.helper';
 import { hashPassword } from '../helpers/password.helper';
 import { mapLoginResponse } from '../mappers/user.mapper';
+import { emailService } from '../services/email';
 import * as userService from '../services/users';
 
 export async function getUsers(
@@ -38,6 +39,10 @@ export async function createUser(
     const user = await userService.registerUser({ ...req.body, password: hashedPassword });
 
     console.log(`User ${user.name} registered successfully.`);
+
+    emailService.sendWelcomeEmail(user.email, user.name).catch((error) => {
+      console.error(`Failed to send welcome email to user ${user.id}:`, error);
+    });
 
     const { password: _password, ...userWithoutPassword } = user;
     return res.status(status.CREATED).json({ user: userWithoutPassword });
@@ -83,4 +88,25 @@ export function getUserById(
       return res.status(status.OK).json(user);
     })
     .catch(next);
+}
+
+export async function invalidateAllSessions(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> {
+  try {
+    const userId = req.user!.userId;
+
+    await userService.invalidateAllUserSessions(userId);
+
+    console.log(`All sessions invalidated successfully for user ${userId}`);
+
+    return res.status(status.OK).json({
+      message: 'All sessions have been invalidated successfully',
+    });
+  } catch (err) {
+    console.error('Error invalidating sessions:', err);
+    next(err);
+  }
 }

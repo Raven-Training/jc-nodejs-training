@@ -4,6 +4,7 @@ import { UserRole } from './user.types';
 
 export interface JwtPayload {
   userId: number;
+  tokenVersion: number;
 }
 
 export interface LoginResult {

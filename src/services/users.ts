@@ -19,6 +19,7 @@ const USER_AUTH_FIELDS: (keyof User)[] = [
   'email',
   'password',
   'role',
+  'tokenVersion',
   'createdAt',
 ];
 
@@ -80,7 +81,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
   return {
     success: true,
-    token: generateToken({ userId: user.id }),
+    token: generateToken({ userId: user.id, tokenVersion: user.tokenVersion }),
     user: userWithoutPassword,
     message: 'Login successful',
     role: user.role,
@@ -131,4 +132,21 @@ export async function isUserAdmin(userId: number): Promise<boolean> {
   });
 
   return user?.role === UserRole.ADMIN;
+}
+
+export async function invalidateAllUserSessions(userId: number): Promise<void> {
+  const user = await userRepository.findOne({
+    where: { id: userId },
+    select: ['id', 'tokenVersion'],
+  });
+
+  if (!user) {
+    throw new Error(`User with id ${userId} not found`);
+  }
+
+  user.tokenVersion += 1;
+
+  await userRepository.save(user);
+
+  console.log(`All sessions invalidated successfully for user ${userId}`);
 }

@@ -19,6 +19,10 @@ import {
 jest.mock('../src/services/users');
 
 describe('Users Controller', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('GET /users', () => {
     it('should return paginated users when GET /users is called', async () => {
       const mockUsers: User[] = [generateUser()];
@@ -26,7 +30,7 @@ describe('Users Controller', () => {
         mockUsers,
         generatePaginationMetadata(1, 10, 1),
       );
-      const token = generateToken({ userId: 1 });
+      const token = generateToken({ userId: 1, tokenVersion: 0 });
       (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
 
       const res = await request(app).get('/users').set('Authorization', `Bearer ${token}`);
@@ -58,7 +62,7 @@ describe('Users Controller', () => {
         mockUsers,
         generatePaginationMetadata(2, 10, 25),
       );
-      const token = generateToken({ userId: 1 });
+      const token = generateToken({ userId: 1, tokenVersion: 0 });
       (userService.findAll as jest.Mock).mockResolvedValue(mockPaginatedResponse);
       const res = await request(app)
         .get('/users?page=2&limit=5')
@@ -81,7 +85,7 @@ describe('Users Controller', () => {
     });
 
     it('should handle database errors with proper logging', async () => {
-      const token = generateToken({ userId: 1 });
+      const token = generateToken({ userId: 1, tokenVersion: 0 });
       const databaseError = generateDatabaseError();
       (userService.findAll as jest.Mock).mockRejectedValue(databaseError);
 
@@ -114,6 +118,7 @@ describe('Users Controller', () => {
           lastName: createdUser.lastName,
           email: createdUser.email,
           role: createdUser.role,
+          tokenVersion: createdUser.tokenVersion,
           createdAt: createdUser.createdAt.toISOString(),
         },
       });
@@ -182,7 +187,7 @@ describe('Users Controller', () => {
   describe('GET /users/:id', () => {
     it('should return a user when GET /users/:id is called with valid id', async () => {
       const userId = 3;
-      const token = generateToken({ userId: 1 });
+      const token = generateToken({ userId: 1, tokenVersion: 0 });
       const foundUser = generateUser({ id: userId });
       (userService.findUser as jest.Mock).mockResolvedValue(foundUser);
 
@@ -198,7 +203,7 @@ describe('Users Controller', () => {
     });
 
     it('should return 404 if user is not found when GET /users/:id is called', async () => {
-      const token = generateToken({ userId: 1 });
+      const token = generateToken({ userId: 1, tokenVersion: 0 });
       (userService.findUser as jest.Mock).mockResolvedValue(null);
 
       const res = await request(app).get('/users/999').set('Authorization', `Bearer ${token}`);
@@ -243,6 +248,7 @@ describe('Users Controller', () => {
         lastName: 'Doe',
         email: 'john@example.com',
         role: UserRole.USER,
+        tokenVersion: 0,
         createdAt: new Date(),
       };
       const mockLoginResult = generateSuccessfulLoginResponse('jwt-token-here', mockUser);
@@ -313,6 +319,99 @@ describe('Users Controller', () => {
           }),
         ]),
       );
+    });
+  });
+
+  describe('POST /users/sessions/invalidate_all', () => {
+    it('should invalidate all sessions for authenticated user', async () => {
+      const userId = 1;
+      const token = generateToken({ userId, tokenVersion: 0 });
+
+      (userService.invalidateAllUserSessions as jest.Mock).mockResolvedValue(undefined);
+
+      const res = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        message: 'All sessions have been invalidated successfully',
+      });
+      expect(userService.invalidateAllUserSessions).toHaveBeenCalledWith(userId);
+    });
+
+    it('should return 401 when no authentication token provided', async () => {
+      const res = await request(app).post('/users/sessions/invalidate_all');
+
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('message');
+      expect(userService.invalidateAllUserSessions).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 when token is invalid', async () => {
+      const invalidToken = 'invalid-token';
+
+      const res = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${invalidToken}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body).toHaveProperty('message');
+      expect(userService.invalidateAllUserSessions).not.toHaveBeenCalled();
+    });
+
+    it('should handle service errors during invalidation', async () => {
+      const userId = 1;
+      const token = generateToken({ userId, tokenVersion: 0 });
+      const databaseError = generateDatabaseError();
+
+      (userService.invalidateAllUserSessions as jest.Mock).mockRejectedValue(databaseError);
+
+      const res = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(500);
+      expect(userService.invalidateAllUserSessions).toHaveBeenCalledWith(userId);
+    });
+
+    it('should handle user not found error', async () => {
+      const userId = 999;
+      const token = generateToken({ userId, tokenVersion: 0 });
+
+      (userService.invalidateAllUserSessions as jest.Mock).mockRejectedValue(
+        new Error('User with id 999 not found'),
+      );
+
+      const res = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(500);
+      expect(userService.invalidateAllUserSessions).toHaveBeenCalledWith(userId);
+    });
+
+    it('should invalidate sessions for different users independently', async () => {
+      const user1Id = 1;
+      const user2Id = 2;
+      const token1 = generateToken({ userId: user1Id, tokenVersion: 0 });
+      const token2 = generateToken({ userId: user2Id, tokenVersion: 0 });
+
+      (userService.invalidateAllUserSessions as jest.Mock).mockResolvedValue(undefined);
+
+      const res1 = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res1.status).toBe(200);
+      expect(userService.invalidateAllUserSessions).toHaveBeenCalledWith(user1Id);
+
+      const res2 = await request(app)
+        .post('/users/sessions/invalidate_all')
+        .set('Authorization', `Bearer ${token2}`);
+
+      expect(res2.status).toBe(200);
+      expect(userService.invalidateAllUserSessions).toHaveBeenCalledWith(user2Id);
     });
   });
 });

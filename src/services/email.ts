@@ -2,37 +2,18 @@ import nodemailer, { Transporter } from 'nodemailer';
 
 import config from '../config/config';
 
-class EmailService {
-  private transporter: Transporter;
+const transporter: Transporter = nodemailer.createTransport({
+  host: config.email.host,
+  port: config.email.port,
+  secure: config.email.secure,
+  auth: {
+    user: config.email.auth.user,
+    pass: config.email.auth.pass,
+  },
+});
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.secure,
-      auth: {
-        user: config.email.auth.user,
-        pass: config.email.auth.pass,
-      },
-    });
-  }
-
-  async sendWelcomeEmail(to: string, userName: string): Promise<void> {
-    try {
-      await this.transporter.sendMail({
-        from: config.email.from,
-        to,
-        subject: 'Welcome to Pokémon Teams',
-        html: this.getWelcomeEmailTemplate(userName),
-      });
-      console.log(`Welcome email sent successfully to ${to}`);
-    } catch (error) {
-      console.error(`Error sending welcome email to ${to}:`, error);
-    }
-  }
-
-  private getWelcomeEmailTemplate(userName: string): string {
-    return `
+function getWelcomeEmailTemplate(userName: string): string {
+  return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -120,7 +101,20 @@ class EmailService {
       </body>
       </html>
     `;
-  }
 }
 
-export const emailService = new EmailService();
+export async function sendWelcomeEmail(to: string, userName: string): Promise<boolean> {
+  try {
+    await transporter.sendMail({
+      from: config.email.from,
+      to,
+      subject: 'Welcome to Pokémon Teams',
+      html: getWelcomeEmailTemplate(userName),
+    });
+    console.log(`Welcome email sent successfully to ${to}`);
+    return true;
+  } catch (error) {
+    console.error(`Error sending welcome email to ${to}:`, error);
+    return false;
+  }
+}

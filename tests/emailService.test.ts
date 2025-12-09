@@ -7,7 +7,7 @@ const mockSendMail = jest.fn();
   sendMail: mockSendMail,
 });
 
-import { emailService } from '../src/services/email';
+import * as emailService from '../src/services/email';
 
 describe('EmailService', () => {
   let consoleLogSpy: jest.SpyInstance;

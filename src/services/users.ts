@@ -6,6 +6,7 @@ import { User } from '../entities/User';
 import { generateToken } from '../helpers/jwt.helper';
 import { calculatePaginationMetadata } from '../helpers/pagination.helper';
 import { hashPassword } from '../helpers/password.helper';
+import * as emailService from '../services/email';
 import { LoginResult } from '../types/auth.types';
 import { PaginationParams, PaginatedResponse } from '../types/pagination.types';
 import { UserRole, CreateAdminUserRequest, UserWithRole } from '../types/user.types';
@@ -62,8 +63,11 @@ export function createMany(users: DeepPartial<User>[]): Promise<User[]> {
   return userRepository.save(users);
 }
 
-export function registerUser(user: User): Promise<User> {
-  return userRepository.save(user);
+export async function registerUser(user: User): Promise<User> {
+  const savedUser = await userRepository.save(user);
+  emailService.sendWelcomeEmail(savedUser.email, savedUser.name);
+
+  return savedUser;
 }
 
 export async function authenticateUser(email: string, password: string): Promise<LoginResult> {

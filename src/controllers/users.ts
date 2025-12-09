@@ -6,7 +6,6 @@ import { notFoundError } from '../errors';
 import { createPaginationParams, getValidPage } from '../helpers/pagination.helper';
 import { hashPassword } from '../helpers/password.helper';
 import { mapLoginResponse } from '../mappers/user.mapper';
-import { emailService } from '../services/email';
 import * as userService from '../services/users';
 
 export async function getUsers(
@@ -39,10 +38,6 @@ export async function createUser(
     const user = await userService.registerUser({ ...req.body, password: hashedPassword });
 
     console.log(`User ${user.name} registered successfully.`);
-
-    emailService.sendWelcomeEmail(user.email, user.name).catch((error) => {
-      console.error(`Failed to send welcome email to user ${user.id}:`, error);
-    });
 
     const { password: _password, ...userWithoutPassword } = user;
     return res.status(status.CREATED).json({ user: userWithoutPassword });

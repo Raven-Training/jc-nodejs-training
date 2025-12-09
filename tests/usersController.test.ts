@@ -6,7 +6,6 @@ import { User } from '../src/entities/User';
 import { generateToken } from '../src/helpers/jwt.helper';
 import { UserRole } from '../src/types/user.types';
 import * as userService from '../src/services/users';
-import { emailService } from '../src/services/email';
 import { generateUser, generateUserInput, generateInvalidPassword } from './utils/factories';
 import {
   generatePaginatedResponse,
@@ -18,7 +17,6 @@ import {
 } from './utils/testGenerators';
 
 jest.mock('../src/services/users');
-jest.mock('../src/services/email');
 
 describe('Users Controller', () => {
   beforeEach(() => {
@@ -99,10 +97,6 @@ describe('Users Controller', () => {
   });
 
   describe('POST /users (Registration)', () => {
-    beforeEach(() => {
-      (emailService.sendWelcomeEmail as jest.Mock).mockResolvedValue(undefined);
-    });
-
     it('should create and return a user when POST /users is called with valid data', async () => {
       const newUser = generateUserInput();
       const createdUser = generateUser({
@@ -132,13 +126,9 @@ describe('Users Controller', () => {
         ...newUser,
         password: expect.any(String),
       });
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
-        createdUser.email,
-        createdUser.name,
-      );
     });
 
-    it('should send welcome email after successful registration', async () => {
+    it('should successfully register user and return 201 status', async () => {
       const newUser = generateUserInput();
       const createdUser = generateUser({
         name: newUser.name,
@@ -148,16 +138,16 @@ describe('Users Controller', () => {
 
       jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
 
-      await request(app).post('/users').send(newUser);
+      const res = await request(app).post('/users').send(newUser);
 
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
-        createdUser.email,
-        createdUser.name,
-      );
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledTimes(1);
+      expect(res.status).toBe(201);
+      expect(userService.registerUser).toHaveBeenCalledWith({
+        ...newUser,
+        password: expect.any(String),
+      });
     });
 
-    it('should complete registration even if email sending fails', async () => {
+    it('should complete registration successfully', async () => {
       const newUser = generateUserInput();
       const createdUser = generateUser({
         name: newUser.name,
@@ -166,9 +156,6 @@ describe('Users Controller', () => {
       });
 
       jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
-      (emailService.sendWelcomeEmail as jest.Mock).mockRejectedValue(
-        new Error('SMTP connection failed'),
-      );
 
       const res = await request(app).post('/users').send(newUser);
 

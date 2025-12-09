@@ -17,8 +17,15 @@ declare module 'nodemailer' {
     text?: string;
   }
 
+  export interface SentMessageInfo {
+    messageId: string;
+    accepted?: string[];
+    rejected?: string[];
+    response?: string;
+  }
+
   export interface Transporter {
-    sendMail(mailOptions: MailOptions): Promise<any>;
+    sendMail(mailOptions: MailOptions): Promise<SentMessageInfo>;
   }
 
   export function createTransport(options: TransportOptions): Transporter;

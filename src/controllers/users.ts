@@ -84,3 +84,24 @@ export function getUserById(
     })
     .catch(next);
 }
+
+export async function invalidateAllSessions(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> {
+  try {
+    const userId = req.user!.userId;
+
+    await userService.invalidateAllUserSessions(userId);
+
+    console.log(`All sessions invalidated successfully for user ${userId}`);
+
+    return res.status(status.OK).json({
+      message: 'All sessions have been invalidated successfully',
+    });
+  } catch (err) {
+    console.error('Error invalidating sessions:', err);
+    next(err);
+  }
+}

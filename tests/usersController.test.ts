@@ -128,6 +128,49 @@ describe('Users Controller', () => {
       });
     });
 
+    it('should successfully register user and return 201 status', async () => {
+      const newUser = generateUserInput();
+      const createdUser = generateUser({
+        name: newUser.name,
+        lastName: newUser.lastName,
+        email: newUser.email,
+      });
+
+      jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
+
+      const res = await request(app).post('/users').send(newUser);
+
+      expect(res.status).toBe(201);
+      expect(userService.registerUser).toHaveBeenCalledWith({
+        ...newUser,
+        password: expect.any(String),
+      });
+    });
+
+    it('should complete registration successfully', async () => {
+      const newUser = generateUserInput();
+      const createdUser = generateUser({
+        name: newUser.name,
+        lastName: newUser.lastName,
+        email: newUser.email,
+      });
+
+      jest.spyOn(userService, 'registerUser').mockResolvedValue(createdUser);
+
+      const res = await request(app).post('/users').send(newUser);
+
+      expect(res.status).toBe(201);
+      expect(res.body.user).toEqual({
+        id: createdUser.id,
+        name: createdUser.name,
+        lastName: createdUser.lastName,
+        email: createdUser.email,
+        role: createdUser.role,
+        tokenVersion: createdUser.tokenVersion,
+        createdAt: createdUser.createdAt.toISOString(),
+      });
+    });
+
     it('should return 409 if the email already exists', async () => {
       const newUser = generateUserInput();
       const existingUser = generateUser({
